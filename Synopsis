@@ -1,0 +1,2 @@
+A good static analysis tool is one that would reduce the burden of trivial debugging, that the compiler does not include, off the shoulders of the developer. As the developer writes code, it is being evaluated, giving information that would help the developer.
+The scope includes finding the occurence of memory leaks, buffer overflows and uninitialized variables, among others.
