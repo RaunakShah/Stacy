@@ -1,8 +1,8 @@
 
-D			[0-9]
 L			[a-zA-Z_]
 H			[a-fA-F0-9]
 E			[Ee][+-]?{D}+
+D			[0-9]
 FS			(f|F|l|L)
 IS			(u|U|l|L)*
 
@@ -14,39 +14,40 @@ void count();
 %}
 
 %%
-"/*"			{ comment(); }
 
-"auto"			{ count();  }
-"break"			{ count();  }
-"case"			{ count();  }
-"char"			{ count();  }
-"const"			{ count();  }
-"continue"		{ count(); }
-"default"		{ count();  }
-"do"			{ count();  }
-"double"		{ count(); }
-"else"			{ count();  }
-"enum"			{ count();  }
-"extern"		{ count();  }
-"float"			{ count();  }
-"for"			{ count();  }
-"goto"			{ count();  }
-"int"			{ count();  }
-"long"			{ count();  }
-"register"		{ count();  }
-"return"		{ count();  }
-"short"			{ count();  }
-"signed"		{ count();  }
-"sizeof"		{ count();  }
-"static"		{ count();  }
-"struct"		{ count();  }
-"switch"		{ count();  }
-"typedef"		{ count();  }
-"union"			{ count();  }
-"unsigned"		{ count();  }
-"void"			{ count();  }
-"volatile"		{ count();  }
-"while"			{ count();  }
+"/*"			{ comment(); }
+"auto"			{ count(); return(AUTO);}
+"break"			{ count(); return(BREAK);}
+"case"			{ count();  return(CASE); }
+"char"			{ count();   return(CASE);}
+"const"			{ count();   return(CONST);}
+"continue"		{ count();   return(CONTINUE);}
+"default"		{ count();   return(DEFAULT);}
+"do"			{ count();   return(DO);}
+"double"		{ count();   return(DOUBLE);}
+"else"			{ count();   return(ELSE);}
+"enum"			{ count();   return(ENUM);}
+"extern"		{ count();   return(EXTERN);}
+"float"			{ count();   return(FLOAT);}
+"for"			{ count();   return(FOR);}
+"goto"			{ count();   return(GOTO);}
+"if"			{ count();   return(IF);}
+"int"			{ count();   return(INT);}
+"long"			{ count();   return(LONG);}
+"register"		{ count();   return(REGISTER);}
+"return"		{ count();  return(RETURN);}
+"short"			{ count();   return(SHORT);}
+"signed"		{ count();   return(SIGNED);}
+"sizeof"		{ count();   return(SIZEOF);}
+"static"		{ count();   return(STATIC);}
+"struct"		{ count();   return(STRUCT);}
+"switch"		{ count();   return(SWITCH);}
+"typedef"		{ count();   return(TYPEDEF);}
+"union"			{ count();   return(UNION);}
+"unsigned"		{ count();   return(UNSIGNED);}
+"void"			{ count();   return(VOID);}
+"volatile"		{ count();   return(VOLATILE);}
+"while"			{ count();   return(WHILE);}
 
 {L}({L}|{D})*		{ count(); return(check_type()); }
 
@@ -112,8 +113,8 @@ L?\"(\\.|[^\\"])*\"	{ count(); return(STRING_LITERAL); }
 .			{ /* ignore bad characters */ }
 
 %%
-
-yywrap()
+	
+int yywrap()
 {
 	return(1);
 }
@@ -170,6 +171,5 @@ int check_type()
 /*
 *	it actually will only return IDENTIFIER
 */
-
 	return(IDENTIFIER);
 }
