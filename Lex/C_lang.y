@@ -1,10 +1,19 @@
 %{
 #include<stdio.h>
-
+char s;
 extern char yytext[];
 %}
 
-%token IDENTIFIER CONSTANT STRING_LITERAL SIZEOF
+%union{
+  char *text;
+  struct {
+    char *variable;
+	char *type;
+  } symtab_entry;
+};
+
+%token<text> IDENTIFIER
+%token CONSTANT STRING_LITERAL SIZEOF
 %token PTR_OP INC_OP DEC_OP LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP
 %token AND_OP OR_OP MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
 %token SUB_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN
@@ -13,6 +22,8 @@ extern char yytext[];
 %token CHAR SHORT INT LONG SIGNED UNSIGNED FLOAT DOUBLE CONST VOLATILE VOID
 %token STRUCT UNION ENUM ELLIPSIS
 %token CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
+
+%type<symtab_entry> declarator direct_declarator
 
 %nonassoc LOWER_THAN_ELSE
 %nonassoc ELSE
@@ -159,8 +170,8 @@ constant_expression
 	 {	 }
 	;
 declaration
-	: declaration_specifiers ';' {	printf("variable declared"); }
-	| declaration_specifiers init_declarator_list ';' { printf("variable declared"); }
+	: declaration_specifiers ';' 
+	| declaration_specifiers init_declarator_list ';' 
 	;
 declaration_specifiers
 	: storage_class_specifier {	 }
@@ -177,9 +188,9 @@ init_declarator_list
 	 {	 }
 	;
 init_declarator
-	: declarator {	 }
+	: declarator {	printf("=%s=",$1); }
 	| declarator '=' initializer
-	 {	 }
+	 {	printf("=%s=",$1); }
 	;
 storage_class_specifier
 	: TYPEDEF {	 }
@@ -264,12 +275,12 @@ type_qualifier
 		 {	 }
 	;
 declarator
-	: pointer direct_declarator {	 }
+	: pointer direct_declarator {	$$ = $2; }
 	| direct_declarator
-		 {	 }
+		 {	$$ = $1; }
 	;
 direct_declarator
-	: IDENTIFIER {	 }
+	: IDENTIFIER { }
 	| '(' declarator ')' {	 }
 	| direct_declarator '[' constant_expression ']' {	 }
 	| direct_declarator '[' ']' {	 }
@@ -415,10 +426,10 @@ external_declaration
 	 {	 }
 	;
 function_definition
-	: declaration_specifiers declarator declaration_list compound_statement { printf("%s",yylval);	 }
-	| declaration_specifiers declarator compound_statement {	printf("%s",yylval);	 }
-	| declarator declaration_list compound_statement {		printf("%s",yylval); }
-	| declarator compound_statement {printf("%s",yylval);}
+	: declaration_specifiers declarator declaration_list compound_statement {	 }
+	| declaration_specifiers declarator compound_statement {		 }
+	| declarator declaration_list compound_statement {		 }
+	| declarator compound_statement {}
 	;
 %%
 

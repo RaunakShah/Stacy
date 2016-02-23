@@ -1,6 +1,16 @@
-a=a+b;
-
 void main()
 {
-printf("hello world");
+	int a = 0;
+	int *b;
+	int c[10][2];
+	int **d;
+
+}
+
+int function(int a, int a){
+ 	int a, b, c, d;
+	int *b;
+	int c[10][2];
+	int **d;
+int; 
 }
