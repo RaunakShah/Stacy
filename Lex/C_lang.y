@@ -191,7 +191,7 @@ init_declarator_list
 	 {  	 }
 	;
 init_declarator
-	: declarator {  	 }
+	: declarator {	 }
 	| declarator '=' initializer
 	 {  	  }
 	;
@@ -361,12 +361,12 @@ initializer_list
 		 {  	 }
 	;
 statement
-	: labeled_statement {  createNode("labeled_statement");	 }
-	| compound_statement {  createNode("compound_statement");	 }
-	| expression_statement {  	createNode("expression_statement"); }
+	: labeled_statement {  createNode("labeled_statement");printf("2");	 }
+	| compound_statement {  	 }
+	| expression_statement {  	createNode("expression_statement"); printf("4");}
 	| selection_statement { }
-	| iteration_statement {  createNode("iteration_statement");	 }
-	| jump_statement		 {  printf("h");	createNode("jump_statement"); }
+	| iteration_statement {   }
+	| jump_statement		 {  printf("h");	createNode("jump_statement");printf("6"); }
 	;
 labeled_statement
 	: IDENTIFIER ':' statement {  	 }
@@ -382,7 +382,7 @@ compound_statement
 		 
 	;
 declaration_list
-	: declaration {  	 }
+	: declaration {  createNode();printf("7"); }
 	| declaration_list declaration
 		 {  	 }
 	;
@@ -410,8 +410,12 @@ selection_statement
 	| if_statement statement ELSE statement {  	 }
 	| switch_statement statement { }
 	;
+	
+while_statement
+	: WHILE '(' expression ')' {createIfNode(); printf("he");}
+	;
 iteration_statement
-	: WHILE '(' expression ')' {createIfNode();} statement {  	 }
+	: while_statement statement {  	 }
 	| DO statement WHILE '(' expression ')' ';' {  	 }
 	| FOR '(' expression_statement expression_statement ')' statement {  	 }
 	| FOR '(' expression_statement expression_statement expression ')' statement
@@ -430,9 +434,8 @@ translation_unit
 	| translation_unit external_declaration
 	;
 external_declaration
-	: function_definition {	 }
-	| declaration
-	 { createNode();}
+	: function_definition {	printf("hello"); }
+	| declaration { createNode();printf("1");}
 	;
 function_definition
 	: declaration_specifiers declarator declaration_list compound_statement {	}
