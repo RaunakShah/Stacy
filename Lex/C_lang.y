@@ -447,8 +447,8 @@ function_definition
 
 extern int column;
 main() {
-extern int yydebug;
-/*yydebug = 1;*/
+/*extern int yydebug;
+yydebug = 1;*/
     yyparse();
  }
 yyerror(s)
