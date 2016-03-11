@@ -3,7 +3,7 @@
 #include<string.h>
 #include "graph.h"
 #define YYDEBUG 1
-char s;
+
 extern char yytext[];
 %}
 
@@ -29,7 +29,7 @@ extern char yytext[];
 %token CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 
 %type<symtab_entry> declarator direct_declarator 
-%type<text> declaration_specifiers declaration_list external_declaration
+%type<text> declaration_specifiers declaration_list external_declaration if_statement statement expression expression_statement declaration
 %type<integer> storage_class_specifier
 
 %nonassoc LOWER_THAN_ELSE
@@ -170,7 +170,7 @@ assignment_operator
 expression
 	: assignment_expression { }
 	| expression ',' assignment_expression
-	 {  	 }
+	 { 	 }
 	;
 constant_expression
 	: conditional_expression
@@ -370,7 +370,7 @@ initializer_list
 statement
 	: labeled_statement {  createNode("labeled_statement");printf("label");	 }
 	| compound_statement {  /*printf("compound");*/	 }
-	| expression_statement {  createNode("expression_statement");/* printf("expression");*/}
+	| expression_statement {  createNode($1);/* printf("expression");*/}
 	| selection_statement { }
 	| iteration_statement { /*printf("iteration");*/  }
 	| jump_statement		 {  printf("h");	createNode("jump_statement");printf("jjmp"); }
@@ -390,8 +390,8 @@ compound_statement
 	
 	;
 declaration_list
-	: declaration {  createNode("dec");/*printf("decl1");*/}
-	| declaration_list declaration { createNode("dec");/*printf("decl2");*/}
+	: declaration {  createNode($1);/*printf("decl1");*/}
+	| declaration_list declaration { createNode($2);/*printf("decl2");*/}
 	;
 	
 statement_list
@@ -405,11 +405,11 @@ expression_statement
 		 {  	 }
 	;
 if_statement
-	: IF '(' expression ')' { createIfNode();}
+	: IF '(' expression ')' { createNode($3); push(currentNode);}
 	
 selection_statement
-	: if_statement statement { /*pop*/	}
-	| if_statement statement ELSE {/*push*/ } statement { /*pop*/ 	 }
+	: if_statement statement { printf("if");currentNode = pop();	}
+	| if_statement statement ELSE { push(currentNode); } statement { currentNode = pop(); 	 }
 	| switch_statement statement { }
 	;
 switch_statement
@@ -443,6 +443,7 @@ translation_unit
 external_declaration
 	: function_definition {	printf("hello"); print_symb(); }
 	| declaration { createNode("he;;");}
+
 	;
 function_definition
 	: declaration_specifiers declarator declaration_list {createGraph();} compound_statement {	}

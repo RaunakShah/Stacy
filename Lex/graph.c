@@ -3,13 +3,9 @@
 #include<string.h>
 #include "graph.h"
 #include "y.tab.h"
-int cnt = 0;
-struct node *currentNode;
-struct symtab **s;
-int num_of_nodes = 0;
-struct node *startNode;
-struct node *stack[100];
 int stacktop=0;
+int num_of_nodes=0;
+int cnt=0;
 void createGraph(){
 	s = malloc (sizeof(struct symtab *)*10);
 	s[cnt] = malloc (sizeof(struct symtab *));
@@ -29,7 +25,7 @@ void createNode(char *symbols){
 	if(currentNode == NULL){
 		currentNode = newNode;
 		currentNode->next1 = NULL;
-		startNode = currentNode;
+		startNode = newNode;
 	}
 	else
 	{
@@ -38,7 +34,7 @@ void createNode(char *symbols){
 		currentNode = newNode;
 	}
 	num_of_nodes++;
-	printf("%d %s\n	", num_of_nodes,currentNode->symbol);
+	//printf("%d %s\n	", num_of_nodes,currentNode->symbol);
 	//if identifier
 	for(i=0;i<cnt;i++){
 		//traverse symbol table 
@@ -134,18 +130,26 @@ is_symbol(char *symbol)
 	
 void print_symb(){
 	int i;
+	struct node* printNode;
 	/*for(i = 0;i<max_symbols;i++){
 		printf("symbols: %s", symbols[i]);
 	}*/
+	i=0;
+	printNode = startNode;
+	while(printNode!=NULL){
+		printf("%d %s\n", i++, printNode->symbol);
+		printNode = printNode->next1;
+	}
 }	
 	
 void push(struct node *item){
-	printf("%s",item);
-	printf("%d",stacktop);
+	//printf("%d",stacktop);
 	stack[stacktop++] = item;
-	//for(i=0;i<stacktop;i++){
-		//printf("%s",stack[i]->symbol);
-	//}
+}
+
+struct node* pop(){
+	//printf("returning ");
+	return stack[stacktop]--;
 }
 
 	

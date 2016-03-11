@@ -4,7 +4,6 @@ struct node {
 	struct node *next3;
 	char *symbol;
 };
-
 struct symtab{
 	char *symbol;
 	int init;
@@ -17,4 +16,10 @@ void createGraph();
 void createIfNode();
 void createNode();
 void push(struct node *item);
-void pop();
+struct node* pop();
+
+struct node *currentNode;
+struct symtab **s;
+struct node *startNode;
+struct node *stack[100];
+
