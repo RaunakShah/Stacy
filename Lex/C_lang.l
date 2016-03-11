@@ -1,4 +1,3 @@
-
 L			[a-zA-Z_]
 H			[a-fA-F0-9]
 E			[Ee][+-]?{D}+
@@ -170,6 +169,10 @@ int check_type()
 /*
 *	it actually will only return IDENTIFIER
 */
-yylval.text = strdup(yytext);
+yylval.text = yytext;//just added
+if(is_symbol(yylval.text)){
+printf("returning typename\n");
+	return(TYPE_NAME);
+}
 return(IDENTIFIER);
 }

@@ -8,6 +8,7 @@ extern char yytext[];
 %}
 
 %union{
+  int integer;
   char *text;
   struct {
     char *variable;
@@ -16,6 +17,7 @@ extern char yytext[];
 };
 
 %token<text> IDENTIFIER
+
 %token CONSTANT STRING_LITERAL SIZEOF
 %token PTR_OP INC_OP DEC_OP LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP
 %token AND_OP OR_OP MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
@@ -26,7 +28,9 @@ extern char yytext[];
 %token STRUCT UNION ENUM ELLIPSIS
 %token CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 
-%type<symtab_entry> declarator direct_declarator
+%type<symtab_entry> declarator direct_declarator 
+%type<text> declaration_specifiers declaration_list external_declaration
+%type<integer> storage_class_specifier
 
 %nonassoc LOWER_THAN_ELSE
 %nonassoc ELSE
@@ -174,21 +178,23 @@ constant_expression
 	;
 declaration
 	: declaration_specifiers ';' {  }
-	| declaration_specifiers init_declarator_list ';' {  } 
+	| declaration_specifiers init_declarator_list ';' {  }  
 	;
+	
+
 declaration_specifiers
-	: storage_class_specifier {  	 }
-	| storage_class_specifier declaration_specifiers {  	 }
+	: storage_class_specifier {  }
+	| storage_class_specifier declaration_specifiers {  printf("\n***%s***\n",	$2); 	 }
 	| type_specifier {  	 }
-	| type_specifier declaration_specifiers {  	 }
+	| type_specifier declaration_specifiers {	 }
 	| type_qualifier {  	 }
 	| type_qualifier declaration_specifiers
 		 {  	 }
 	;
 init_declarator_list
 	: init_declarator {  	 }
-	| init_declarator_list ',' init_declarator
-	 {  	 }
+	| init_declarator_list ',' init_declarator { }
+	| init_declarator_list init_declarator {  } 
 	;
 init_declarator
 	: declarator {	 }
@@ -196,13 +202,13 @@ init_declarator
 	 {  	  }
 	;
 storage_class_specifier
-	: TYPEDEF {  	 }
-	| EXTERN {  	 }
+	: EXTERN {  	 }
 	| STATIC {  	 }
 	| AUTO {	 }
-	| REGISTER
-	 {	 }
+	| REGISTER {}
+	| TYPEDEF {}
 	;
+	
 type_specifier
 	: VOID 			{	  }
 	| CHAR {  	 }
@@ -219,10 +225,10 @@ type_specifier
 		 {  	 }
 	;
 struct_or_union_specifier
-	: struct_or_union IDENTIFIER '{' struct_declaration_list '}' {  	 }
-	| struct_or_union '{' struct_declaration_list '}' {  	 }
+	: struct_or_union IDENTIFIER  '{' struct_declaration_list '}' {  symtab_add($2); printf("a");	 }
+	| struct_or_union '{' struct_declaration_list '}' {  printf("b");	 }
 	| struct_or_union IDENTIFIER
-		 {  	 }
+		 { symtab_add($2); 	 }
 	;
 struct_or_union
 	: STRUCT {  	 }
@@ -230,17 +236,17 @@ struct_or_union
 			 {  	 }
 	;
 struct_declaration_list
-	: struct_declaration {  	 }
+	: struct_declaration {  printf("bb");	 }
 	| struct_declaration_list struct_declaration
-		 {  	 }
+		 {  printf("bb87");	 }
 	;
 struct_declaration
-	: specifier_qualifier_list struct_declarator_list ';'
-		 {  	 }
+	: specifier_qualifier_list struct_declarator_list ';' {printf("S");}
 	;
+	
 specifier_qualifier_list
-	: type_specifier specifier_qualifier_list {  	 }
-	| type_specifier {  	 }
+	: type_specifier specifier_qualifier_list {  printf("1");	 }
+	| type_specifier {  	printf("2"); }
 	| type_qualifier specifier_qualifier_list {  	 }
 	| type_qualifier
 		 {  	 }
@@ -359,15 +365,17 @@ initializer_list
 	: initializer {  	 }
 	| initializer_list ',' initializer
 		 {  	 }
+
 	;
 statement
-	: labeled_statement {  createNode("labeled_statement");printf("2");	 }
-	| compound_statement {  	 }
-	| expression_statement {  	createNode("expression_statement"); printf("4");}
+	: labeled_statement {  createNode("labeled_statement");printf("label");	 }
+	| compound_statement {  /*printf("compound");*/	 }
+	| expression_statement {  createNode("expression_statement");/* printf("expression");*/}
 	| selection_statement { }
-	| iteration_statement {   }
-	| jump_statement		 {  printf("h");	createNode("jump_statement");printf("6"); }
-	;
+	| iteration_statement { /*printf("iteration");*/  }
+	| jump_statement		 {  printf("h");	createNode("jump_statement");printf("jjmp"); }
+	
+;
 labeled_statement
 	: IDENTIFIER ':' statement {  	 }
 	| CASE constant_expression ':' statement {  	 }
@@ -376,50 +384,49 @@ labeled_statement
 	;
 compound_statement
 	: '{'  '}' {  	 }
-	| '{'  statement_list '}' {  	 }
-	| '{'  declaration_list '}' {  	 }
-	| '{' declaration_list statement_list '}'
-		 
+	| '{'  statement_list '}' { /* printf("cmp1");	*/ }
+	| '{'  declaration_list '}' { /*printf("cmp2");*/  	 }
+	| '{' declaration_list statement_list '}' { /*printf("cmp3");*/}
+	
 	;
 declaration_list
-	: declaration {  createNode();printf("7"); }
-	| declaration_list declaration
-		 {  	 }
+	: declaration {  createNode("dec");/*printf("decl1");*/}
+	| declaration_list declaration { createNode("dec");/*printf("decl2");*/}
 	;
 	
 statement_list
-	: statement {  	 }
-	| statement_list statement
-		 {  	 }
+	: statement { /* printf("state1");	*/ }
+	| statement_list statement { /*printf("state2");*/}
+		
 	;
 expression_statement
 	: ';' {  	 }
 	| expression ';'
 		 {  	 }
 	;
-	
-switch_statement
-	: SWITCH '(' expression ')' { createIfNode(); }
-	;
-
 if_statement
-	: IF '(' expression ')' {  createIfNode(); }
-	;
+	: IF '(' expression ')' { createIfNode();}
+	
 selection_statement
-	: if_statement statement {	}
-	| if_statement statement ELSE statement {  	 }
+	: if_statement statement { /*pop*/	}
+	| if_statement statement ELSE {/*push*/ } statement { /*pop*/ 	 }
 	| switch_statement statement { }
 	;
-	
-while_statement
-	: WHILE '(' expression ')' {createIfNode(); printf("he");}
+switch_statement
+	: SWITCH '(' expression ')' { createIfNode();}
+	;
+for_statement
+	: FOR '(' expression_statement expression_statement ')' { createIfNode();}
+	;
+for_statement_extended
+	: FOR '(' expression_statement expression_statement expression ')' {createIfNode();}
 	;
 iteration_statement
-	: while_statement statement {  	 }
+	: WHILE '(' expression ')' statement {  	 }
 	| DO statement WHILE '(' expression ')' ';' {  	 }
-	| FOR '(' expression_statement expression_statement ')' statement {  	 }
-	| FOR '(' expression_statement expression_statement expression ')' statement
-		 {  	 }
+	| for_statement statement 
+	| for_statement_extended statement
+		 { }
 	;
 jump_statement
 	: GOTO IDENTIFIER ';'
@@ -431,17 +438,17 @@ jump_statement
 	;
 translation_unit
 	: external_declaration {   }
-	| translation_unit external_declaration
+	| translation_unit external_declaration { }
 	;
 external_declaration
-	: function_definition {	printf("hello"); }
-	| declaration { createNode();printf("1");}
+	: function_definition {	printf("hello"); print_symb(); }
+	| declaration { createNode("he;;");}
 	;
 function_definition
-	: declaration_specifiers declarator declaration_list compound_statement {	}
-	| declaration_specifiers declarator compound_statement {		 }
-	| declarator declaration_list compound_statement {		 }
-	| declarator compound_statement {}
+	: declaration_specifiers declarator declaration_list {createGraph();} compound_statement {	}
+	| declaration_specifiers declarator {createGraph();} compound_statement {		 }
+	| declarator declaration_list {createGraph();} compound_statement {		 }
+	| declarator{createGraph();} compound_statement {}
 	;
 %%
 
