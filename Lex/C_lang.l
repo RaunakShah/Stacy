@@ -169,7 +169,8 @@ int check_type()
 /*
 *	it actually will only return IDENTIFIER
 */
-yylval.text = yytext;//just added
+// printf("\nLEX IDENTIFIER yytext is ==%s==\n", yytext);
+yylval.text = strdup(yytext);
 if(is_symbol(yylval.text)){
 printf("returning typename\n");
 	return(TYPE_NAME);

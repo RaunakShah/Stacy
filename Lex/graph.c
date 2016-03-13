@@ -8,41 +8,71 @@ int num_of_nodes=0;
 int cnt=0;
 void createGraph(){
 	s = malloc (sizeof(struct symtab *)*10);
-	s[cnt] = malloc (sizeof(struct symtab *));
+	/*s[cnt] = malloc (sizeof(struct symtab *));
 	s[cnt]->symbol = NULL;
 	s[cnt]->init = 0;
 	printf("%d %s %d", cnt, s[cnt]->symbol, s[cnt]->init);
-	
+	*/
 }
 
 
-void createNode(char *symbols){
-	printf("regular node");
+void createNode(char *symbols, int type){
 	struct node *newNode;
 	int i;
+	printf("regular node");
+	//printf("%d", type);
 	newNode = (struct node*) malloc (sizeof(struct node));	
-	newNode->symbol = symbols;
-	if(currentNode == NULL){
+	newNode->symbol = strdup(symbols);
+	newNode->next1 = NULL;
+	//currentNode = newNode;
+	if(startNode == NULL){
 		currentNode = newNode;
-		currentNode->next1 = NULL;
 		startNode = newNode;
 	}
-	else
-	{
+	else{	
 		currentNode->next1 = newNode;
-		newNode->next1 = NULL;
 		currentNode = newNode;
 	}
 	num_of_nodes++;
+	printf("--%s--",currentNode->symbol);
+	//printf("%s\n",(startNode->next1)->symbol);
 	//printf("%d %s\n	", num_of_nodes,currentNode->symbol);
 	//if identifier
 	for(i=0;i<cnt;i++){
 		//traverse symbol table 
 	}
+	if(type==declaration){
+		printf("symbol ::%s", symbols);
+		add_to_symtab(newNode->symbol);
+	}
 	//if doesnt exist in symtab
 	/*s[count].symbol = $$;
 	s[count].init = 0;
 	count++;*/
+}
+
+void add_to_symtab(char *symbol){
+	int i;
+	printf("symb::%d %s", cnt,symbol);
+	s[cnt] = malloc (sizeof(struct symtab));
+	s[cnt]->symbol = symbol;
+	s[cnt]->init = 0;
+	printf("symb2::%d %s %d", cnt,s[cnt]->symbol,s[cnt]->init);
+	cnt++;
+}
+
+void init_symtab(char *symb){
+	int i,flag=0;
+	char *str;
+	str = strdup(symb);
+	printf("matchww %s ",symb);
+	for(i=0;i<cnt;i++){
+		printf("check %s and %s",str, s[i]->symbol);
+		if(strcmp(str,s[i]->symbol)==0){
+			printf("match");
+			s[i]->init = 1;
+		}
+	}
 }
 
 void createIfNode(){
@@ -136,9 +166,14 @@ void print_symb(){
 	}*/
 	i=0;
 	printNode = startNode;
+	//printf("%s", startNode->symbol);
 	while(printNode!=NULL){
 		printf("%d %s\n", i++, printNode->symbol);
 		printNode = printNode->next1;
+	}
+	printf("\nsymtab\n");
+	for(i=0;i<cnt;i++){
+		printf("%d %s %d\n",i,s[i]->symbol,s[i]->init);
 	}
 }	
 	

@@ -28,8 +28,8 @@ extern char yytext[];
 %token STRUCT UNION ENUM ELLIPSIS
 %token CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 
-%type<symtab_entry> declarator direct_declarator 
-%type<text> declaration_specifiers declaration_list external_declaration if_statement statement expression expression_statement declaration
+%type<text> declarator direct_declarator 
+%type<text> declaration_specifiers declaration_list external_declaration if_statement statement expression expression_statement declaration init_declarator 
 %type<integer> storage_class_specifier
 
 %nonassoc LOWER_THAN_ELSE
@@ -39,7 +39,7 @@ extern char yytext[];
 
 %%
 
-primary_expression: IDENTIFIER  {  }
+primary_expression: IDENTIFIER  { init_symtab($1); }
 	| CONSTANT { }
 	| STRING_LITERAL { }
 	| '(' expression ')'
@@ -168,7 +168,7 @@ assignment_operator
 	 {  	 }
 	;
 expression
-	: assignment_expression { }
+	: assignment_expression {  }
 	| expression ',' assignment_expression
 	 { 	 }
 	;
@@ -178,7 +178,7 @@ constant_expression
 	;
 declaration
 	: declaration_specifiers ';' {  }
-	| declaration_specifiers init_declarator_list ';' {  }  
+	| declaration_specifiers init_declarator_list ';' { printf("D"); }  
 	;
 	
 
@@ -192,14 +192,13 @@ declaration_specifiers
 		 {  	 }
 	;
 init_declarator_list
-	: init_declarator {  	 }
-	| init_declarator_list ',' init_declarator { }
-	| init_declarator_list init_declarator {  } 
+	: init_declarator {  createNode($1,declaration); printf("%s", $1);	 }
+	| init_declarator_list ',' init_declarator { printf("%s", $3);createNode($3,declaration);}
 	;
 init_declarator
-	: declarator {	 }
+	: declarator {	$$=$1; }
 	| declarator '=' initializer
-	 {  	  }
+	 {  printf("sssSS");	  }
 	;
 storage_class_specifier
 	: EXTERN {  	 }
@@ -289,11 +288,11 @@ declarator
 		 {  	$$ = $1; }
 	;
 direct_declarator
-	: IDENTIFIER {  }
+	: IDENTIFIER {  $$=$1;  }
 	| '(' declarator ')' {  	 }
 	| direct_declarator '[' constant_expression ']' {  	 }
 	| direct_declarator '[' ']' {  	 }
-	| direct_declarator '(' parameter_type_list ')' {  	 }
+	| direct_declarator '(' parameter_type_list ')' {  $$ = $1;	 }
 	| direct_declarator '(' identifier_list ')' {  	 }
 	| direct_declarator '(' ')'
 		 {  	 }
@@ -370,7 +369,7 @@ initializer_list
 statement
 	: labeled_statement {  createNode("labeled_statement");printf("label");	 }
 	| compound_statement {  /*printf("compound");*/	 }
-	| expression_statement {  createNode($1);/* printf("expression");*/}
+	| expression_statement {  createNode($1,other);printf("\nexpression %s\n",$1);}
 	| selection_statement { }
 	| iteration_statement { /*printf("iteration");*/  }
 	| jump_statement		 {  printf("h");	createNode("jump_statement");printf("jjmp"); }
@@ -390,8 +389,8 @@ compound_statement
 	
 	;
 declaration_list
-	: declaration {  createNode($1);/*printf("decl1");*/}
-	| declaration_list declaration { createNode($2);/*printf("decl2");*/}
+	: declaration { }
+	| declaration_list declaration { }
 	;
 	
 statement_list
@@ -405,7 +404,7 @@ expression_statement
 		 {  	 }
 	;
 if_statement
-	: IF '(' expression ')' { createNode($3); push(currentNode);}
+	: IF '(' expression ')' { createIfNode($3); push(currentNode);}
 	
 selection_statement
 	: if_statement statement { printf("if");currentNode = pop();	}
@@ -442,12 +441,12 @@ translation_unit
 	;
 external_declaration
 	: function_definition {	printf("hello"); print_symb(); }
-	| declaration { createNode("he;;");}
+	| declaration { }
 
 	;
 function_definition
-	: declaration_specifiers declarator declaration_list {createGraph();} compound_statement {	}
-	| declaration_specifiers declarator {createGraph();} compound_statement {		 }
+	: declaration_specifiers declarator declaration_list {createGraph();printf("1.%s 2.%s 3.%s",$1,$2,$3);} compound_statement {	}
+	| declaration_specifiers declarator {createGraph(); createNode($2,other);} compound_statement {	 }
 	| declarator declaration_list {createGraph();} compound_statement {		 }
 	| declarator{createGraph();} compound_statement {}
 	;
