@@ -13,6 +13,8 @@ struct symtab{
 struct stack{
 	struct node *item;
 };
+int scope_stack[100];
+
 void createGraph();
 void createIfNode();
 void createNode();
@@ -20,8 +22,12 @@ void push(struct node *item);
 struct node* pop();
 void add_to_symtab(char *symbol);
 void init_symtab(char *symbol);
+void add_scope();
+void pop_scope();
+
 struct node *currentNode;
 struct symtab **s;
 struct node *startNode;
 struct node *stack[100];
+
 

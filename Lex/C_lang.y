@@ -29,7 +29,7 @@ extern char yytext[];
 %token CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 
 %type<text> declarator direct_declarator 
-%type<text> declaration_specifiers declaration_list external_declaration if_statement statement expression expression_statement declaration init_declarator 
+%type<text> declaration_specifiers declaration_list external_declaration if_statement statement expression expression_statement declaration init_declarator primary_expression postfix_expression unary_expression assignment_expression
 %type<integer> storage_class_specifier
 
 %nonassoc LOWER_THAN_ELSE
@@ -39,7 +39,7 @@ extern char yytext[];
 
 %%
 
-primary_expression: IDENTIFIER  { init_symtab($1); }
+primary_expression: IDENTIFIER  { $$=$1; }
 	| CONSTANT { }
 	| STRING_LITERAL { }
 	| '(' expression ')'
@@ -47,7 +47,7 @@ primary_expression: IDENTIFIER  { init_symtab($1); }
 	;
 	
 postfix_expression
-	: primary_expression {  	 }
+	: primary_expression {  /*printf("post1"); */ $$ = $1;	 }
 	| postfix_expression '[' expression ']'  {  	 }
 	| postfix_expression '(' ')'  {  	 }
 	| postfix_expression '(' argument_expression_list ')'  {  	 }
@@ -63,11 +63,11 @@ argument_expression_list
 	 {  	 }
 	;
 unary_expression
-	: postfix_expression {  	 }
-	| INC_OP unary_expression {  	 }
-	| DEC_OP unary_expression {  	 }
-	| unary_operator cast_expression {  	 }
-	| SIZEOF unary_expression {  	 }
+	: postfix_expression {  /*printf("unary");	*/ $$=$1; }
+	| INC_OP unary_expression {  	printf("unary2"); }
+	| DEC_OP unary_expression {  	printf("unary3"); }
+	| unary_operator cast_expression {  	 printf("unary4");}
+	| SIZEOF unary_expression {  	 printf("assignment");}
 	| SIZEOF '(' type_name ')'
 	 {  	 }
 	;
@@ -149,9 +149,9 @@ conditional_expression
 	 {  	 }
 	;
 assignment_expression
-	: conditional_expression {  	 }
+	: conditional_expression {  printf("assignment_exp1");	 }
 	| unary_expression assignment_operator assignment_expression
-	 {  	 }
+	 {   init_symtab($1);	 }
 	;
 assignment_operator
 	: '=' {  	 }
@@ -168,7 +168,7 @@ assignment_operator
 	 {  	 }
 	;
 expression
-	: assignment_expression {  }
+	: assignment_expression { printf("assignment"); }
 	| expression ',' assignment_expression
 	 { 	 }
 	;
@@ -177,7 +177,7 @@ constant_expression
 	 {  	 }
 	;
 declaration
-	: declaration_specifiers ';' {  }
+	: declaration_specifiers ';' { }
 	| declaration_specifiers init_declarator_list ';' { printf("D"); }  
 	;
 	
@@ -245,7 +245,7 @@ struct_declaration
 	
 specifier_qualifier_list
 	: type_specifier specifier_qualifier_list {  printf("1");	 }
-	| type_specifier {  	printf("2"); }
+	| type_specifier {  	 }
 	| type_qualifier specifier_qualifier_list {  	 }
 	| type_qualifier
 		 {  	 }
@@ -381,11 +381,15 @@ labeled_statement
 	| DEFAULT ':' statement
 		 {  	 }
 	;
+	
+curly_brace
+	: '{' { printf("befr");add_scope();}
+	;
 compound_statement
-	: '{'  '}' {  	 }
-	| '{'  statement_list '}' { /* printf("cmp1");	*/ }
-	| '{'  declaration_list '}' { /*printf("cmp2");*/  	 }
-	| '{' declaration_list statement_list '}' { /*printf("cmp3");*/}
+	: curly_brace '}' {  pop_scope();	 }
+	| curly_brace statement_list '}' { pop_scope();/* printf("cmp1");	*/ }
+	| curly_brace declaration_list '}' { pop_scope();/*printf("cmp2");*/  	 }
+	| curly_brace declaration_list statement_list '}' { pop_scope();/*printf("cmp3");*/}
 	
 	;
 declaration_list

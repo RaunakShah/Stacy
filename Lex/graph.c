@@ -6,6 +6,7 @@
 int stacktop=0;
 int num_of_nodes=0;
 int cnt=0;
+int scope_count=0;
 void createGraph(){
 	s = malloc (sizeof(struct symtab *)*10);
 	/*s[cnt] = malloc (sizeof(struct symtab *));
@@ -34,7 +35,7 @@ void createNode(char *symbols, int type){
 		currentNode = newNode;
 	}
 	num_of_nodes++;
-	printf("--%s--",currentNode->symbol);
+	//printf("--%s--",currentNode->symbol);
 	//printf("%s\n",(startNode->next1)->symbol);
 	//printf("%d %s\n	", num_of_nodes,currentNode->symbol);
 	//if identifier
@@ -42,7 +43,7 @@ void createNode(char *symbols, int type){
 		//traverse symbol table 
 	}
 	if(type==declaration){
-		printf("symbol ::%s", symbols);
+		//printf("symbol ::%s", symbols);
 		add_to_symtab(newNode->symbol);
 	}
 	//if doesnt exist in symtab
@@ -52,8 +53,8 @@ void createNode(char *symbols, int type){
 }
 
 void add_to_symtab(char *symbol){
-	int i;
-	printf("symb::%d %s", cnt,symbol);
+	//int i;
+	//printf("symb::%d %s", cnt,symbol);
 	s[cnt] = malloc (sizeof(struct symtab));
 	s[cnt]->symbol = symbol;
 	s[cnt]->init = 0;
@@ -62,17 +63,42 @@ void add_to_symtab(char *symbol){
 }
 
 void init_symtab(char *symb){
-	int i,flag=0;
+	int k,flag=0,j;
 	char *str;
 	str = strdup(symb);
-	printf("matchww %s ",symb);
-	for(i=0;i<cnt;i++){
-		printf("check %s and %s",str, s[i]->symbol);
-		if(strcmp(str,s[i]->symbol)==0){
+	//printf("matchww %s ",symb);
+	printf("%d", scope_stack[scope_count]);
+	if(scope_count==0)
+		j=0;
+	else
+		j=scope_stack[scope_count-1];
+	for(k=j;k<cnt;k++){
+		//printf("check %s and %s",str, s[i]->symbol);
+		printf("init smy %d %d %d", k,j,cnt);
+		if(strcmp(str,s[k]->symbol)==0){
 			printf("match");
-			s[i]->init = 1;
+			s[k]->init = 1;
+			break;
 		}
 	}
+}
+
+void add_scope(){
+	//push_scope(cnt);
+	scope_stack[scope_count] = cnt;
+	printf(" count %d scope_stack[scope count]= %d = %d",scope_count,scope_stack[scope_count],cnt);
+	scope_count++;
+	//printf("%d", scope_count);
+}
+
+void pop_scope(){
+	int i,k;
+	i = scope_stack[--scope_count];
+	//printf("%d scop",i);
+	for(k=i;k<cnt;k++){
+		printf("here!! %d %d %s %d %d\n",i,k,s[k]->symbol,s[k]->init,cnt);
+	}
+	cnt = i;
 }
 
 void createIfNode(){
