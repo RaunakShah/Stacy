@@ -18,22 +18,28 @@ void createGraph(){
 
 
 void createNode(char *symbols, int type){
-	struct node *newNode;
+struct node *newNode;
 	int i;
 	printf("regular node");
 	//printf("%d", type);
 	newNode = (struct node*) malloc (sizeof(struct node));	
 	newNode->symbol = strdup(symbols);
 	newNode->next1 = NULL;
+	newNode->next2 = NULL;
 	//currentNode = newNode;
 	if(startNode == NULL){
-		currentNode = newNode;
 		startNode = newNode;
 	}
-	else{	
-		currentNode->next1 = newNode;
-		currentNode = newNode;
+	else{
+		if(currentNode->next1==NULL){
+			currentNode->next1 = newNode;
+			}
+		else{
+			currentNode->next2 = newNode;
+			}
 	}
+	//printf("%d %s %s", currentNode->symbol, currentNode->next1, currentNode->next2);
+	currentNode = newNode;
 	num_of_nodes++;
 	//printf("--%s--",currentNode->symbol);
 	//printf("%s\n",(startNode->next1)->symbol);
@@ -51,75 +57,31 @@ void createNode(char *symbols, int type){
 	s[count].init = 0;
 	count++;*/
 }
-
-void add_to_symtab(char *symbol){
-	//int i;
-	//printf("symb::%d %s", cnt,symbol);
-	s[cnt] = malloc (sizeof(struct symtab));
-	s[cnt]->symbol = symbol;
-	s[cnt]->init = 0;
-	printf("symb2::%d %s %d", cnt,s[cnt]->symbol,s[cnt]->init);
-	cnt++;
-}
-
-void init_symtab(char *symb){
-	int k,flag=0,j;
-	char *str;
-	str = strdup(symb);
-	//printf("matchww %s ",symb);
-	printf("%d", scope_stack[scope_count]);
-	if(scope_count==0)
-		j=0;
-	else
-		j=scope_stack[scope_count-1];
-	for(k=j;k<cnt;k++){
-		//printf("check %s and %s",str, s[i]->symbol);
-		printf("init smy %d %d %d", k,j,cnt);
-		if(strcmp(str,s[k]->symbol)==0){
-			printf("match");
-			s[k]->init = 1;
-			break;
-		}
-	}
-}
-
-void add_scope(){
-	//push_scope(cnt);
-	scope_stack[scope_count] = cnt;
-	printf(" count %d scope_stack[scope count]= %d = %d",scope_count,scope_stack[scope_count],cnt);
-	scope_count++;
-	//printf("%d", scope_count);
-}
-
-void pop_scope(){
-	int i,k;
-	i = scope_stack[--scope_count];
-	//printf("%d scop",i);
-	for(k=i;k<cnt;k++){
-		printf("here!! %d %d %s %d %d\n",i,k,s[k]->symbol,s[k]->init,cnt);
-	}
-	cnt = i;
-}
-
+/*
 void createIfNode(){
 	struct node *newNode;
-	int i,flag; 
-	printf(" if node\n");
+	int i;
+	printf("regular node");
+	//printf("%d", type);
 	newNode = (struct node*) malloc (sizeof(struct node));	
-	if(currentNode == NULL){
-		newNode->next1 = NULL;
-		currentNode = newNode;
-	}
-	else
-	{
+	newNode->symbol = strdup(symbols);
+	newNode->next1 = NULL;
+	newNode->next2 = NULL;
+	//currentNode = newNode;
+	//if(startNode == NULL){
+		//currentNode = newNode;
+		//startNode = newNode;
+	//}
+	if(currentNode->next1==NULL){
 		currentNode->next1 = newNode;
-		newNode->next1 = NULL;
 		currentNode = newNode;
 	}
-	
-	push(currentNode);
+	else{
+		currentNode->next2 = newNode;
+		currentNode = newNode;
+	}
 	num_of_nodes++;
-	
+	//push(currentNode);
 	//printf("%d", num_of_nodes);
 	//if identifier
 	/*for(i=0;i<cnt;i++){
@@ -139,8 +101,67 @@ void createIfNode(){
 	for(i=0;i<cnt;i++){
 	printf("%s",s[i]->symbol);
 	}
-	*/
+	
+}*/
+void add_to_symtab(char *symbol){
+	//int i;
+	//printf("symb::%d %s", cnt,symbol);
+	s[cnt] = malloc (sizeof(struct symtab));
+	s[cnt]->symbol = symbol;
+	s[cnt]->init = 0;
+	//printf("symb2::%d %s %d", cnt,s[cnt]->symbol,s[cnt]->init);
+	cnt++;
 }
+
+void init_symtab(char *symb){
+	int k,flag=0,j;
+	char *str;
+	str = strdup(symb);
+	//printf("matchww %s ",symb);
+	//printf("%d", scope_stack[scope_count]);
+	if(scope_count==0)
+		j=0;
+	else
+		j=scope_stack[scope_count-1];
+	for(k=j;k<cnt;k++){
+		//printf("check %s and %s",str, s[i]->symbol);
+		//printf("init smy %d %d %d", k,j,cnt);
+		if(strcmp(str,s[k]->symbol)==0){
+			//printf("match");
+			flag = 1;
+			s[k]->init = 1;
+			break;
+		}
+	}
+	if(flag==0){
+		for(k=0;k<j;k++){
+			if(strcmp(str,s[k]->symbol)==0){
+				s[k]->init = 1;
+				break;
+			}
+		}
+	}
+}
+
+void add_scope(){
+	//push_scope(cnt);
+	scope_stack[scope_count] = cnt;
+	//printf(" count %d scope_stack[scope count]= %d = %d",scope_count,scope_stack[scope_count],cnt);
+	scope_count++;
+	//printf("%d", scope_count);
+}
+
+void pop_scope(){
+	int i,k;
+	i = scope_stack[--scope_count];
+	//printf("%d scop",i);
+	for(k=i;k<cnt;k++){
+		printf("here!! %d %d %s %d %d\n",i,k,s[k]->symbol,s[k]->init,cnt);
+	}
+	cnt = i;
+}
+
+
 /*
 void pushSymtab(char *v){
 	s = malloc (sizeof(struct symtab *)*10);
@@ -152,8 +173,7 @@ void pushSymtab(char *v){
 		printf("%s", s[i]->symbol);
 	}
 }
-
-	*/
+*/
 	
 char *symbols[100];
 int max_symbols = 0;

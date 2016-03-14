@@ -3,9 +3,7 @@ int main() {
 	int j,k;
 	j=i;
 	{
-		int i,j;
-		i=10;
-		j=i;
+		int i;
 		k=10;
 	}
 	i=10;

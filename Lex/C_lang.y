@@ -408,7 +408,7 @@ expression_statement
 		 {  	 }
 	;
 if_statement
-	: IF '(' expression ')' { createIfNode($3); push(currentNode);}
+	: IF '(' expression ')' { createNode($3); push(currentNode);}
 	
 selection_statement
 	: if_statement statement { printf("if");currentNode = pop();	}
@@ -416,13 +416,13 @@ selection_statement
 	| switch_statement statement { }
 	;
 switch_statement
-	: SWITCH '(' expression ')' { createIfNode();}
+	: SWITCH '(' expression ')' { createNode($3);}
 	;
 for_statement
-	: FOR '(' expression_statement expression_statement ')' { createIfNode();}
+	: FOR '(' expression_statement expression_statement ')' { }
 	;
 for_statement_extended
-	: FOR '(' expression_statement expression_statement expression ')' {createIfNode();}
+	: FOR '(' expression_statement expression_statement expression ')' { }
 	;
 iteration_statement
 	: WHILE '(' expression ')' statement {  	 }
