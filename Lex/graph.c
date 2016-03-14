@@ -37,11 +37,15 @@ struct node *newNode;
 		else{
 			currentNode->next2 = newNode;
 			}
+	printf("--%s--%s__",currentNode->symbol,(currentNode->next1)->symbol);
+	
 	}
+	
+	
 	//printf("%d %s %s", currentNode->symbol, currentNode->next1, currentNode->next2);
-	currentNode = newNode;
 	num_of_nodes++;
-	//printf("--%s--",currentNode->symbol);
+	currentNode = newNode;
+	
 	//printf("%s\n",(startNode->next1)->symbol);
 	//printf("%d %s\n	", num_of_nodes,currentNode->symbol);
 	//if identifier
@@ -213,8 +217,11 @@ void print_symb(){
 	i=0;
 	printNode = startNode;
 	//printf("%s", startNode->symbol);
-	while(printNode!=NULL){
-		printf("%d %s\n", i++, printNode->symbol);
+	while(printNode->next1!=NULL){
+		printf("%d %s\n", i++, (printNode->next1)->symbol);
+		if(printNode->next2){
+			printf("2: %s \n",(printNode->next2)->symbol);
+		}
 		printNode = printNode->next1;
 	}
 	printf("\nsymtab\n");
@@ -230,9 +237,30 @@ void push(struct node *item){
 
 struct node* pop(){
 	//printf("returning ");
-	return stack[stacktop]--;
+	return stack[--stacktop];
 }
 
+int traverse_graph(struct node *graph_node){
+	int i;
+	if((graph_node->next1==NULL)&&(graph_node->next2==NULL)){
+		// return uninitialised variables
+		printf("end of path %s",graph_node->symbol);
+		//check_symtab();
+		printf("\nsymtab\n");
+		for(i=0;i<cnt;i++){
+		printf("%d %s %d\n",i,s[i]->symbol,s[i]->init);
+	}
+		return 0;
+	}
+	//recursive call to graph_node->next1
+	printf("next1 %s\n",graph_node->symbol);
+	traverse_graph(graph_node->next1);
+	//recursive call to graph_node->next1
+	if(graph_node->next2!=NULL){
+		printf("next2 %s\n",graph_node->symbol);	
+		traverse_graph(graph_node->next2);
+	}
+}
 	
 	
 	

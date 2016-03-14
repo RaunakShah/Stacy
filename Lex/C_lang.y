@@ -444,7 +444,7 @@ translation_unit
 	| translation_unit external_declaration { }
 	;
 external_declaration
-	: function_definition {	printf("hello"); print_symb(); }
+	: function_definition {	printf("hello");  int a = traverse_graph(startNode); print_symb(); }
 	| declaration { }
 
 	;
