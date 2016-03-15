@@ -6,6 +6,8 @@
 int stacktop=0;
 int num_of_nodes=0;
 int cnt=0;
+int var_array_count = 0;
+int init_array_count=0;
 int scope_count=0;
 void createGraph(){
 	s = malloc (sizeof(struct symtab *)*10);
@@ -17,13 +19,14 @@ void createGraph(){
 }
 
 
-void createNode(char *symbols, int type){
+void createNode(char *symbols, int type_of){
 struct node *newNode;
 	int i;
 	printf("regular node");
 	//printf("%d", type);
 	newNode = (struct node*) malloc (sizeof(struct node));	
 	newNode->symbol = strdup(symbols);
+	newNode->type = type_of;
 	newNode->next1 = NULL;
 	newNode->next2 = NULL;
 	//currentNode = newNode;
@@ -40,19 +43,13 @@ struct node *newNode;
 	printf("--%s--%s__",currentNode->symbol,(currentNode->next1)->symbol);
 	
 	}
-	
-	
 	//printf("%d %s %s", currentNode->symbol, currentNode->next1, currentNode->next2);
 	num_of_nodes++;
 	currentNode = newNode;
-	
 	//printf("%s\n",(startNode->next1)->symbol);
 	//printf("%d %s\n	", num_of_nodes,currentNode->symbol);
 	//if identifier
-	for(i=0;i<cnt;i++){
-		//traverse symbol table 
-	}
-	if(type==declaration){
+	if(type_of==declaration){
 		//printf("symbol ::%s", symbols);
 		add_to_symtab(newNode->symbol);
 	}
@@ -242,25 +239,87 @@ struct node* pop(){
 
 int traverse_graph(struct node *graph_node){
 	int i;
+	int type;
+	type = graph_node->type;
+	if(graph_node->type==declaration){
+		//add to var array
+		var_array_add(graph_node);
+	}
+	else
+	if(graph_node->type==rhs){
+				int i,index=101,flag=0;
+				printf("rhs \n");
+				for(i=var_array_count-1;i>=0;i--){
+					printf("%d ",i);
+					printf("%s %s\n",var_array[i], graph_node->symbol);
+					if(strcmp(var_array[i],graph_node->symbol)==0){
+						//printf("IT WORKS");
+						index = i;
+						break;
+					}
+				}
+				for(i=init_array_count-1;i>=0;i--){
+					printf("%d %d ", i,index);
+					if(init_array[i]==index){
+						flag=1;
+						break;
+					}
+				}
+				if(flag==0)
+					printf("error\n");
+	}			
+	else
+		//	init_symtab(graph_node->symbol);
+	if(graph_node->type==lhs){
+				printf("lhs\n");
+				int i,index,flag;
+				for(i=var_array_count-1;i>=0;i--){
+					printf("%d lhsfor \n",i);
+					if(strcmp(var_array[i],graph_node->symbol)==0){
+						flag = 1;
+						index = i;
+						break;
+					}
+				}
+				if(flag==1){
+					init_array[init_array_count] = index;
+					init_array_count++;
+				}
+				else{
+					var_array_add(graph_node);
+					init_array[init_array_count] = var_array_count-1;
+					init_array_count++;
+									
+				}
+	}	
+	
 	if((graph_node->next1==NULL)&&(graph_node->next2==NULL)){
 		// return uninitialised variables
 		printf("end of path %s",graph_node->symbol);
-		//check_symtab();
-		printf("\nsymtab\n");
-		for(i=0;i<cnt;i++){
-		printf("%d %s %d\n",i,s[i]->symbol,s[i]->init);
-	}
+		//pop_scope();
 		return 0;
 	}
+	
 	//recursive call to graph_node->next1
 	printf("next1 %s\n",graph_node->symbol);
 	traverse_graph(graph_node->next1);
 	//recursive call to graph_node->next1
+	
 	if(graph_node->next2!=NULL){
 		printf("next2 %s\n",graph_node->symbol);	
 		traverse_graph(graph_node->next2);
 	}
 }
 	
-	
+void var_array_add(struct node *graph_node){
+	int i;
+	printf("adding %s to var array\n",graph_node->symbol);
+	//var_array[var_array_count] = malloc(sizeof(char *));
+	var_array[var_array_count]=graph_node->symbol;
+	var_array_count++;
+	printf("var array\n");
+	for(i=0;i<var_array_count;i++){
+		printf("%d %s ",i,var_array[i]);
+		}
+}
 	

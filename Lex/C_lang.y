@@ -29,7 +29,7 @@ extern char yytext[];
 %token CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 
 %type<text> declarator direct_declarator 
-%type<text> declaration_specifiers declaration_list external_declaration if_statement statement expression expression_statement declaration init_declarator primary_expression postfix_expression unary_expression assignment_expression
+%type<text> declaration_specifiers declaration_list external_declaration if_statement statement expression expression_statement declaration init_declarator primary_expression postfix_expression unary_expression assignment_expression conditional_expression initializer
 %type<integer> storage_class_specifier
 
 %nonassoc LOWER_THAN_ELSE
@@ -39,15 +39,15 @@ extern char yytext[];
 
 %%
 
-primary_expression: IDENTIFIER  { $$=$1; }
-	| CONSTANT { }
-	| STRING_LITERAL { }
+primary_expression: IDENTIFIER  {printf("primat %s",$1); }
+	| CONSTANT { $$=NULL;}
+	| STRING_LITERAL { $$=NULL; }
 	| '(' expression ')'
-		 {  	 }
+		 { printf("DD"); 	 }
 	;
 	
 postfix_expression
-	: primary_expression {  /*printf("post1"); */ $$ = $1;	 }
+	: primary_expression { /* printf("post1");  /*$$ = $1;	*/ }
 	| postfix_expression '[' expression ']'  {  	 }
 	| postfix_expression '(' ')'  {  	 }
 	| postfix_expression '(' argument_expression_list ')'  {  	 }
@@ -63,11 +63,11 @@ argument_expression_list
 	 {  	 }
 	;
 unary_expression
-	: postfix_expression {  /*printf("unary");	*/ $$=$1; }
+	: postfix_expression {  /*printf("unary %s",$1);	/* $$=$1;*/ }
 	| INC_OP unary_expression {  	printf("unary2"); }
 	| DEC_OP unary_expression {  	printf("unary3"); }
 	| unary_operator cast_expression {  	 printf("unary4");}
-	| SIZEOF unary_expression {  	 printf("assignment");}
+	| SIZEOF unary_expression {  	 printf("signment");}
 	| SIZEOF '(' type_name ')'
 	 {  	 }
 	;
@@ -149,9 +149,9 @@ conditional_expression
 	 {  	 }
 	;
 assignment_expression
-	: conditional_expression {  printf("assignment_exp1");	 }
+	: conditional_expression {  /*printf("assignment_exp1 %s ",$1);/*/	 }
 	| unary_expression assignment_operator assignment_expression
-	 {   init_symtab($1);	 }
+	 {   createNode($1,lhs); createNode($3,rhs);/*init_symtab($1); /*printf("assiexp2 %s",$3);	/*/ }
 	;
 assignment_operator
 	: '=' {  	 }
@@ -168,7 +168,7 @@ assignment_operator
 	 {  	 }
 	;
 expression
-	: assignment_expression { printf("assignment"); }
+	: assignment_expression {/*/* printf("assignment3 %s ",$1);/*/ }
 	| expression ',' assignment_expression
 	 { 	 }
 	;
@@ -178,13 +178,13 @@ constant_expression
 	;
 declaration
 	: declaration_specifiers ';' { }
-	| declaration_specifiers init_declarator_list ';' { printf("D"); }  
+	| declaration_specifiers init_declarator_list ';' { /*printf("D");/*/ }  
 	;
 	
 
 declaration_specifiers
 	: storage_class_specifier {  }
-	| storage_class_specifier declaration_specifiers {  printf("\n***%s***\n",	$2); 	 }
+	| storage_class_specifier declaration_specifiers { /* printf("\n***%s***\n",	$2); */	 }
 	| type_specifier {  	 }
 	| type_specifier declaration_specifiers {	 }
 	| type_qualifier {  	 }
@@ -192,13 +192,13 @@ declaration_specifiers
 		 {  	 }
 	;
 init_declarator_list
-	: init_declarator {  createNode($1,declaration); printf("%s", $1);	 }
-	| init_declarator_list ',' init_declarator { printf("%s", $3);createNode($3,declaration);}
+	: init_declarator {  /*createNode($1,declaration); printf("init+Dec1");	*/ }
+	| init_declarator_list ',' init_declarator { /*printf("init_Dec2");createNode($3,declaration);*/}
 	;
 init_declarator
-	: declarator {	$$=$1; }
+	: declarator {	createNode($1,declaration); /*$$=$1; printf("initdec1 ");/*/}
 	| declarator '=' initializer
-	 {  printf("sssSS");	  }
+	 { printf("lhsS %s",$1); createNode($1,lhs); if($3!=NULL){ printf(" rhs %s",$3);createNode($3,rhs);}/*printf("=init %s",$3); /*rhs value*/	  }
 	;
 storage_class_specifier
 	: EXTERN {  	 }
@@ -244,7 +244,7 @@ struct_declaration
 	;
 	
 specifier_qualifier_list
-	: type_specifier specifier_qualifier_list {  printf("1");	 }
+	: type_specifier specifier_qualifier_list { /* printf("1");/*/	 }
 	| type_specifier {  	 }
 	| type_qualifier specifier_qualifier_list {  	 }
 	| type_qualifier
@@ -355,10 +355,10 @@ direct_abstract_declarator
 		 {  	 }
 	;
 initializer
-	: assignment_expression {  	 }
-	| '{' initializer_list '}' {  	 }
+	: assignment_expression {   }
+	| '{' initializer_list '}' { /*printf("ini2");/*/ 	 }
 	| '{' initializer_list ',' '}'
-			 {  	 }
+			 {  /*	printf("ini3");/*/ }
 	;
 initializer_list
 	: initializer {  	 }
@@ -369,7 +369,7 @@ initializer_list
 statement
 	: labeled_statement {  createNode("labeled_statement");printf("label");	 }
 	| compound_statement {  /*printf("compound");*/	 }
-	| expression_statement {  createNode($1,other);printf("\nexpression %s\n",$1);}
+	| expression_statement {  /*createNode($1,other);/*printf("\nexpression %s\n",$1);/*/}
 	| selection_statement { }
 	| iteration_statement { /*printf("iteration");*/  }
 	| jump_statement		 {  printf("h");	createNode("jump_statement");printf("jjmp"); }
@@ -408,7 +408,7 @@ expression_statement
 		 {  	 }
 	;
 if_statement
-	: IF '(' expression ')' { createNode($3); push(currentNode);}
+	: IF '(' expression ')' { /*printf("if-expression-%s ", $3);/*/ createNode($3); push(currentNode);}
 	
 selection_statement
 	: if_statement statement { printf("if");currentNode = pop();	}
