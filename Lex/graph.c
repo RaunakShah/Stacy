@@ -9,6 +9,9 @@ int cnt=0;
 int var_array_count = 0;
 int init_array_count=0;
 int scope_count=0;
+int var_array_stack_count=0;
+int init_array_stack_count=0;
+
 void createGraph(){
 	s = malloc (sizeof(struct symtab *)*10);
 	/*s[cnt] = malloc (sizeof(struct symtab *));
@@ -241,19 +244,26 @@ int traverse_graph(struct node *graph_node){
 	int i;
 	int type;
 	type = graph_node->type;
+	printf("graph symb %s type %d var arr cnt%d\n",graph_node->symbol,graph_node->type,var_array_count);
+	if(graph_node->type==if_node){
+		printf("1 push %d %d", var_array_count,init_array_count);
+		push_var_array_stack(var_array_count);
+		push_init_array_stack(init_array_count);
+	}
 	if(graph_node->type==declaration){
 		//add to var array
+		printf("cnt3: %d ",var_array_count);
 		var_array_add(graph_node);
 	}
-	else
 	if(graph_node->type==rhs){
 				int i,index=101,flag=0;
 				printf("rhs \n");
+				
 				for(i=var_array_count-1;i>=0;i--){
 					printf("%d ",i);
 					printf("%s %s\n",var_array[i], graph_node->symbol);
 					if(strcmp(var_array[i],graph_node->symbol)==0){
-						//printf("IT WORKS");
+						printf("found %s %s \n",var_array[i],graph_node->symbol);
 						index = i;
 						break;
 					}
@@ -268,24 +278,32 @@ int traverse_graph(struct node *graph_node){
 				if(flag==0)
 					printf("error\n");
 	}			
-	else
 		//	init_symtab(graph_node->symbol);
-	if(graph_node->type==lhs){
+	if(graph_node->type==lhs){  //needs altering
+				int i,index,flag=0,j=0;
 				printf("lhs\n");
-				int i,index,flag;
-				for(i=var_array_count-1;i>=0;i--){
+				if(var_array_count==0){
+					var_array_add(graph_node);
+					
+				}
+				j = var_array_count-1;
+				printf("cnt: %d ", var_array_count);
+				for(i=j;i>=0;i--){
 					printf("%d lhsfor \n",i);
 					if(strcmp(var_array[i],graph_node->symbol)==0){
 						flag = 1;
 						index = i;
+						printf("%d",index);
 						break;
 					}
 				}
 				if(flag==1){
+					printf("2 %d ",var_array_count);
 					init_array[init_array_count] = index;
 					init_array_count++;
 				}
 				else{
+					printf("3 %d",var_array_count);
 					var_array_add(graph_node);
 					init_array[init_array_count] = var_array_count-1;
 					init_array_count++;
@@ -297,7 +315,7 @@ int traverse_graph(struct node *graph_node){
 		// return uninitialised variables
 		printf("end of path %s",graph_node->symbol);
 		//pop_scope();
-		return 0;
+		return 1;
 	}
 	
 	//recursive call to graph_node->next1
@@ -306,7 +324,18 @@ int traverse_graph(struct node *graph_node){
 	//recursive call to graph_node->next1
 	
 	if(graph_node->next2!=NULL){
-		printf("next2 %s\n",graph_node->symbol);	
+		int i;printf("next2 %s\n",graph_node->symbol);	
+		printf("var array:\n");
+		for(i=0;i<var_array_count;i++){
+			printf("%d %s\n",i, var_array[i]);
+		}
+		printf("init array:\n");
+		for(i=0;i<init_array_count;i++){
+			printf("%d %d \n",i, init_array[i]);
+		}
+		var_array_count = pop_var_array_stack();
+		printf("returned var aray coun %d\n", var_array_count);
+		init_array_count = pop_init_array_stack();
 		traverse_graph(graph_node->next2);
 	}
 }
@@ -315,11 +344,34 @@ void var_array_add(struct node *graph_node){
 	int i;
 	printf("adding %s to var array\n",graph_node->symbol);
 	//var_array[var_array_count] = malloc(sizeof(char *));
-	var_array[var_array_count]=graph_node->symbol;
-	var_array_count++;
-	printf("var array\n");
+	var_array[var_array_count++]=graph_node->symbol;
+	//var_array_count++;
+	printf("cnt2: %d",var_array_count);
+	/*printf("var array\n");
 	for(i=0;i<var_array_count;i++){
 		printf("%d %s ",i,var_array[i]);
-		}
+		}*/
 }
 	
+void push_var_array_stack(int count){
+	var_array_stack[var_array_stack_count++] = count;
+	printf("var array count in push=  %d\n", var_array_count);
+}
+
+void push_init_array_stack(int count){
+	init_array_stack[init_array_stack_count++] = count;
+	printf("init array count in puah = %d\n", init_array_count);
+}
+
+int pop_var_array_stack(){
+	--var_array_stack_count;
+	printf("returnng %d var arr count\n",var_array_stack[var_array_stack_count]);
+	return var_array_stack[var_array_stack_count];
+	//--var_array_stack_count;
+}
+
+int pop_init_array_stack(){
+	--init_array_stack_count;
+	printf("returning %d ini aar count\n",init_array_stack[init_array_stack_count]);
+	return init_array_stack[init_array_stack_count];
+}

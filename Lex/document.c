@@ -1,10 +1,10 @@
 int main() {
-	int i;
-	int j,k;
-	j=i;
-	{
-		int i;
-		k=10;
+	int a=1	;
+	int b;
+	int c;
+	if(a==1){
+		c=b;
 	}
-	i=10;
+	b=a;
+	
 }

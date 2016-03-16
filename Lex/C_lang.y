@@ -151,7 +151,7 @@ conditional_expression
 assignment_expression
 	: conditional_expression {  /*printf("assignment_exp1 %s ",$1);/*/	 }
 	| unary_expression assignment_operator assignment_expression
-	 {   createNode($1,lhs); createNode($3,rhs);/*init_symtab($1); /*printf("assiexp2 %s",$3);	/*/ }
+	 {   printf("2");createNode($1,lhs); printf("3");if($3!=NULL){createNode($3,rhs);}/*init_symtab($1); /*printf("assiexp2 %s",$3);	/*/ }
 	;
 assignment_operator
 	: '=' {  	 }
@@ -196,9 +196,9 @@ init_declarator_list
 	| init_declarator_list ',' init_declarator { /*printf("init_Dec2");createNode($3,declaration);*/}
 	;
 init_declarator
-	: declarator {	createNode($1,declaration); /*$$=$1; printf("initdec1 ");/*/}
+	: declarator {	printf("4");createNode($1,declaration); /*$$=$1; printf("initdec1 ");/*/}
 	| declarator '=' initializer
-	 { printf("lhsS %s",$1); createNode($1,lhs); if($3!=NULL){ printf(" rhs %s",$3);createNode($3,rhs);}/*printf("=init %s",$3); /*rhs value*/	  }
+	 { printf("lhsS %s",$1); printf("5");createNode($1,lhs); if($3!=NULL){ printf(" rhs %s",$3);createNode($3,rhs);}/*printf("=init %s",$3); /*rhs value*/	  }
 	;
 storage_class_specifier
 	: EXTERN {  	 }
@@ -408,10 +408,10 @@ expression_statement
 		 {  	 }
 	;
 if_statement
-	: IF '(' expression ')' { /*printf("if-expression-%s ", $3);/*/ createNode($3); push(currentNode);}
+	: IF '(' expression ')' { printf("if-expression-%s ", $3); printf("6");createNode($3,if_node); push(currentNode);}
 	
 selection_statement
-	: if_statement statement { printf("if");currentNode = pop();	}
+	: if_statement statement { printf("if");currentNode = pop(); 	}
 	| if_statement statement ELSE { push(currentNode); } statement { currentNode = pop(); 	 }
 	| switch_statement statement { }
 	;
@@ -450,7 +450,7 @@ external_declaration
 	;
 function_definition
 	: declaration_specifiers declarator declaration_list {createGraph();printf("1.%s 2.%s 3.%s",$1,$2,$3);} compound_statement {	}
-	| declaration_specifiers declarator {createGraph(); createNode($2,other);} compound_statement {	 }
+	| declaration_specifiers declarator {createGraph(); printf("1");createNode($2,other);} compound_statement {	 }
 	| declarator declaration_list {createGraph();} compound_statement {		 }
 	| declarator{createGraph();} compound_statement {}
 	;

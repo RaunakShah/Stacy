@@ -1,4 +1,4 @@
-enum type_of_statement {declaration = 1, lhs = 2, rhs = 3, other = 0};
+enum type_of_statement {declaration = 1, lhs = 2, rhs = 3, if_node = 4, other = 0};
 struct node {
 	struct node *next1;
 	struct node *next2;
@@ -26,10 +26,18 @@ void init_symtab(char *symbol);
 void add_scope();
 void pop_scope();
 void var_array_add(struct node* node);
+void push_var_array_stack(int count);
+void push_init_array_stack(int count);
+int pop_var_array_stack();
+int pop_init_array_stack();
+
+
 struct node *currentNode;
 struct symtab **s;
 struct node *startNode;
 struct node *stack[100];
 char *var_array[100];
 int init_array[100];
+int var_array_stack[100];
+int init_array_stack[100];
 
