@@ -1,10 +1,15 @@
 int main() {
-	int a=1	;
-	int b;
-	int c;
-	if(a==1){
-		c=b;
+	int a	;
+	int b=1;
+	int c=1;
+	if((c=1)==b){
+		int b;
+		b=1;
+		if(b==1){
+			int a;
+			a=b;
+		}
+		b=2;
 	}
-	b=a;
-	
+	a=3;
 }
