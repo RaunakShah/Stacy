@@ -3,7 +3,6 @@
 #include<string.h>
 #include "graph.h"
 #define YYDEBUG 1
-
 extern char yytext[];
 %}
 
@@ -28,8 +27,8 @@ extern char yytext[];
 %token STRUCT UNION ENUM ELLIPSIS
 %token CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 
-%type<text> declarator direct_declarator 
-%type<text> declaration_specifiers declaration_list external_declaration if_statement statement expression expression_statement declaration init_declarator primary_expression postfix_expression unary_expression assignment_expression conditional_expression initializer
+%type<text> declarator direct_declarator argument_expression_list
+%type<text> declaration_specifiers declaration_list external_declaration if_statement statement expression expression_statement declaration init_declarator primary_expression postfix_expression unary_expression assignment_expression conditional_expression initializer struct_declaration struct_declarator_list struct_declarator	
 %type<integer> storage_class_specifier
 
 %nonassoc LOWER_THAN_ELSE
@@ -39,20 +38,20 @@ extern char yytext[];
 
 %%
 
-primary_expression: IDENTIFIER  {printf("primat %s",$1); }
+primary_expression: IDENTIFIER  {/*printf("primat %s",$1);/*/ }
 	| CONSTANT { $$=NULL;}
 	| STRING_LITERAL { $$=NULL; }
 	| '(' expression ')'
-		 { printf("DD"); 	 }
+		 { /*printf("DD");/*/ 	 }
 	;
 	
 postfix_expression
-	: primary_expression { /* printf("post1");  /*$$ = $1;	*/ }
+	: primary_expression { /* printf("post1");  /*/	 }
 	| postfix_expression '[' expression ']'  {  	 }
 	| postfix_expression '(' ')'  {  	 }
-	| postfix_expression '(' argument_expression_list ')'  {  	 }
+	| postfix_expression '(' argument_expression_list ')'  { /* printf("post22 %s",$1);/*/ if(strcmp($1,"free")==0){ createNode($1,other); createNode($3,other);	}}
 	| postfix_expression '.' IDENTIFIER  {  	 }
-	| postfix_expression PTR_OP IDENTIFIER  {  	 }
+	| postfix_expression PTR_OP IDENTIFIER  {  $$=$3;	/*createNode($3,lhs);*/ printf("11/%s",$$); }
 	| postfix_expression INC_OP  {  	 }
 	| postfix_expression DEC_OP
 	 {  	 }
@@ -63,11 +62,11 @@ argument_expression_list
 	 {  	 }
 	;
 unary_expression
-	: postfix_expression {  /*printf("unary %s",$1);	/* $$=$1;*/ }
-	| INC_OP unary_expression {  	printf("unary2"); }
-	| DEC_OP unary_expression {  	printf("unary3"); }
-	| unary_operator cast_expression {  	 printf("unary4");}
-	| SIZEOF unary_expression {  	 printf("signment");}
+	: postfix_expression { /* printf("unary %s",$1);/*/	/* $$=$1;*/ }
+	| INC_OP unary_expression {  	/*printf("unary2");/*/ }
+	| DEC_OP unary_expression {  	/*printf("unary3");/*/ }
+	| unary_operator cast_expression {  	/* printf("unary4");/*/}
+	| SIZEOF unary_expression {  	 /*printf("signment");/*/}
 	| SIZEOF '(' type_name ')'
 	 {  	 }
 	;
@@ -149,7 +148,7 @@ conditional_expression
 	 {  	 }
 	;
 assignment_expression
-	: conditional_expression {  /*printf("assignment_exp1 %s ",$1);/*/	 }
+	: conditional_expression { /* printf("assignment_exp1 %s ",$1);/*/	 }
 	| unary_expression assignment_operator assignment_expression
 	 {   printf("2");createNode($1,lhs); printf("3");if($3!=NULL){createNode($3,rhs);}/*init_symtab($1); /*printf("assiexp2 %s",$3);	/*/ }
 	;
@@ -168,7 +167,7 @@ assignment_operator
 	 {  	 }
 	;
 expression
-	: assignment_expression {/*/* printf("assignment3 %s ",$1);/*/ }
+	: assignment_expression {/*printf("assignment3 %s ",$1);/*/ }
 	| expression ',' assignment_expression
 	 { 	 }
 	;
@@ -235,12 +234,12 @@ struct_or_union
 			 {  	 }
 	;
 struct_declaration_list
-	: struct_declaration {  printf("bb");	 }
+	: struct_declaration {  printf("bb"); createNode($1,declaration);	 }
 	| struct_declaration_list struct_declaration
-		 {  printf("bb87");	 }
+		 {  printf("bb87");	createNode($2,declaration); }
 	;
 struct_declaration
-	: specifier_qualifier_list struct_declarator_list ';' {printf("S");}
+	: specifier_qualifier_list struct_declarator_list ';' {$$=$2;printf("S");}
 	;
 	
 specifier_qualifier_list
@@ -251,12 +250,12 @@ specifier_qualifier_list
 		 {  	 }
 	;
 struct_declarator_list
-	: struct_declarator {  	 }
+	: struct_declarator { $$=$1; 	 }
 	| struct_declarator_list ',' struct_declarator
 		 {  	 }
 	;
 struct_declarator
-	: declarator  {  	 }
+	: declarator  {  $$=$1;	 }
 	| ':' constant_expression {  	 }
 	| declarator ':' constant_expression
 		 {  	 }
@@ -288,14 +287,14 @@ declarator
 		 {  	$$ = $1; }
 	;
 direct_declarator
-	: IDENTIFIER {  $$=$1;  }
-	| '(' declarator ')' {  	 }
-	| direct_declarator '[' constant_expression ']' {  	 }
-	| direct_declarator '[' ']' {  	 }
-	| direct_declarator '(' parameter_type_list ')' {  $$ = $1;	 }
-	| direct_declarator '(' identifier_list ')' {  	 }
+	: IDENTIFIER {  $$=$1;  printf("1");}
+	| '(' declarator ')' {  printf("2");	 }
+	| direct_declarator '[' constant_expression ']' {printf("3");  	 }
+	| direct_declarator '[' ']' {  	 printf("4");}
+	| direct_declarator '(' parameter_type_list ')' {printf("5");  $$ = $1;	 }
+	| direct_declarator '(' identifier_list ')' {  	printf("6"); }
 	| direct_declarator '(' ')'
-		 {  	 }
+		 {  	 printf("7");}
 	;
 pointer
 	: '*' {  	 }
@@ -321,8 +320,8 @@ parameter_list
 		 {  	 }
 	;
 parameter_declaration
-	: declaration_specifiers declarator {  	 }
-	| declaration_specifiers abstract_declarator {  	 }
+	: declaration_specifiers declarator {  printf("1");	/*createNode($2,function_parameter);*/	 }
+	| declaration_specifiers abstract_declarator {  printf("2");	 }
 	| declaration_specifiers
 		 {  	 }
 	;
@@ -367,17 +366,18 @@ initializer_list
 
 	;
 statement
-	: labeled_statement {  createNode("labeled_statement");printf("label");	 }
+	: labeled_statement {  /*createNode("labeled_statement");*/printf("label");	 }
 	| compound_statement {  /*printf("compound");*/	 }
 	| expression_statement {  /*createNode($1,other);/*printf("\nexpression %s\n",$1);/*/}
 	| selection_statement { }
 	| iteration_statement { /*printf("iteration");*/  }
-	| jump_statement		 {  printf("h");	createNode("jump_statement");printf("jjmp"); }
+	| jump_statement		 {  printf("h");	/*createNode("jump_statement");*/printf("jjmp"); }
 	
 ;
+
 labeled_statement
 	: IDENTIFIER ':' statement {  	 }
-	| CASE constant_expression ':' statement {  	 }
+	| CASE {createNode("case",other);}constant_expression ':' statement {  	 }
 	| DEFAULT ':' statement
 		 {  	 }
 	;
@@ -387,36 +387,36 @@ curly_brace
 	;
 compound_statement
 	: curly_brace '}' {  pop_scope();	 }
-	| curly_brace statement_list '}' { pop_scope();/* printf("cmp1");	*/ }
-	| curly_brace declaration_list '}' { pop_scope();/*printf("cmp2");*/  	 }
-	| curly_brace declaration_list statement_list '}' { pop_scope();/*printf("cmp3");*/}
+	| curly_brace statement_list '}' { pop_scope(); createNode("}",other);/*printf("cmp1");/*/	 }
+	| curly_brace declaration_list '}' { pop_scope();createNode("}",other);/*printf("cmp2"); 	/*/ }
+	| curly_brace declaration_list statement_list '}' { pop_scope();createNode("}",other);/*printf("cmp3");//*/}
 	
 	;
 declaration_list
-	: declaration { }
-	| declaration_list declaration { }
+	: declaration {/* printf("decl1");/*/}
+	| declaration_list declaration { /*printf("decl1");//*/}
 	;
 	
 statement_list
-	: statement { /* printf("state1");	*/ }
-	| statement_list statement { /*printf("state2");*/}
+	: statement { /* printf("state1");/*/	 }
+	| statement_list statement { /*printf("state2");/*/}
 		
 	;
 expression_statement
 	: ';' {  	 }
 	| expression ';'
-		 {  	 }
+		 { /* printf("exp");/*/	 }
 	;
 if_statement
-	: IF '(' expression ')' { printf("if-expression-%s ", $3); printf("6");createNode($3,if_node); push(currentNode);}
+	: IF '(' expression ')' { /*printf("if-expression-%s ", $3);/*/ printf("6");createNode($3,if_node); push(currentNode);}
 	
 selection_statement
 	: if_statement statement { printf("if");currentNode = pop(); 	}
 	| if_statement statement ELSE { push(currentNode); } statement { currentNode = pop(); 	 }
-	| switch_statement statement { }
+	| switch_statement statement {currentNode = pop(); }
 	;
 switch_statement
-	: SWITCH '(' expression ')' { createNode($3);}
+	: SWITCH '(' expression ')' { createNode($3,switch_node);push(currentNode);}
 	;
 for_statement
 	: FOR '(' expression_statement expression_statement ')' { }
@@ -434,7 +434,7 @@ iteration_statement
 jump_statement
 	: GOTO IDENTIFIER ';'
 	| CONTINUE ';'
-	| BREAK ';' { printf("hello");	 }
+	| BREAK ';' { printf("hello");	createNode("break",other); }
 	| RETURN ';' {	 }
 	| RETURN expression ';'
 		 {  	 }
@@ -450,12 +450,11 @@ external_declaration
 	;
 function_definition
 	: declaration_specifiers declarator declaration_list {createGraph();printf("1.%s 2.%s 3.%s",$1,$2,$3);} compound_statement {	}
-	| declaration_specifiers declarator {createGraph(); printf("1");createNode($2,other);} compound_statement {	 }
-	| declarator declaration_list {createGraph();} compound_statement {		 }
+	| declaration_specifiers declarator {createGraph(); printf("%s",$2);createNode($2,other);} compound_statement {	 }
+	| declarator declaration_list {createGraph();printf("@");} compound_statement {		 }
 	| declarator{createGraph();} compound_statement {}
 	;
 %%
-
 extern int column;
 main() {
 /*extern int yydebug;
@@ -468,4 +467,3 @@ char *s;
 	fflush(stdout);
 	printf("\n%*s\n%*s\n", column, "^", column, s);
 }
-
