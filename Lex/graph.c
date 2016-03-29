@@ -12,7 +12,8 @@ int scope_count=0;
 int var_array_stack_count=0;
 int init_array_stack_count=0;
 int malloc_array_count=0;
-
+int allocation_count=0;
+extern int lineno;
 void createGraph(){
 	s = malloc (sizeof(struct symtab *)*10);
 	/*s[cnt] = malloc (sizeof(struct symtab *));
@@ -26,7 +27,7 @@ void createNode(char *symbols, int type_of){
     struct node *newNode,*switchNode;
 	int i=0;
 	//printf("regular node");
-	//printf("%d", type);
+	////printf("%d", type);
 	newNode = (struct node*) malloc (sizeof(struct node));	
 	newNode->symbol = strdup(symbols);
 	newNode->type = type_of;
@@ -45,7 +46,12 @@ void createNode(char *symbols, int type_of){
 	if((strcmp(newNode->symbol,"break")==0)){
 		currentNode->next[0] = NULL;
 	}
+	
 	else{
+		
+		if((strcmp(newNode->symbol,"malloc")==0)){
+			currentNode->type = 9;
+		}
 		if((strcmp(newNode->symbol,"case")==0)&&(currentNode->type!=switch_node)){
 			//printf("case found\n");
 			if((strcmp(currentNode->symbol,"break")!=0)){
@@ -84,15 +90,15 @@ void createNode(char *symbols, int type_of){
 			//printf("--%s--%s__",currentNode->symbol,(currentNode->next2)->symbol);
 			}*/	
 	
-	//printf("%d %s %s", currentNode->symbol, currentNode->next1, currentNode->next2);
+	////printf("%d %s %s", currentNode->symbol, currentNode->next1, currentNode->next2);
 	num_of_nodes++;
 
 	currentNode = newNode;
-	//printf("%s\n",(startNode->next1)->symbol);
-	//printf("%d %s\n	", num_of_nodes,currentNode->symbol);
+	////printf("%s\n",(startNode->next1)->symbol);
+	////printf("%d %s\n	", num_of_nodes,currentNode->symbol);
 	//if identifier
 	if(type_of==declaration){
-		//printf("symbol ::%s", symbols);
+		////printf("symbol ::%s", symbols);
 		add_to_symtab(newNode->symbol);
 	}
 	//if doesnt exist in symtab
@@ -100,59 +106,13 @@ void createNode(char *symbols, int type_of){
 	s[count].init = 0;
 	count++;*/
 }
-/*
-void createIfNode(){
-	struct node *newNode;
-	int i;
-	printf("regular node");
-	//printf("%d", type);
-	newNode = (struct node*) malloc (sizeof(struct node));	
-	newNode->symbol = strdup(symbols);
-	newNode->next1 = NULL;
-	newNode->next2 = NULL;
-	//currentNode = newNode;
-	//if(startNode == NULL){
-		//currentNode = newNode;
-		//startNode = newNode;
-	//}
-	if(currentNode->next1==NULL){
-		currentNode->next1 = newNode;
-		currentNode = newNode;
-	}
-	else{
-		currentNode->next2 = newNode;
-		currentNode = newNode;
-	}
-	num_of_nodes++;
-	//push(currentNode);
-	//printf("%d", num_of_nodes);
-	//if identifier
-	/*for(i=0;i<cnt;i++){
-		//traverse symbol table
-		flag = 0;
-		if(s[i]->symbol == v){
-			flag = 1;
-			break;
-		}
-	}
-	if(flag==0){
-	//if doesnt exist in symtab/*
-	strcpy(s[cnt]->symbol,v);
-	s[cnt]->init = 0;
-	cnt++;
-	}
-	for(i=0;i<cnt;i++){
-	printf("%s",s[i]->symbol);
-	}
-	
-}*/
 void add_to_symtab(char *symbol){
 	//int i;
-	//printf("symb::%d %s", cnt,symbol);
+	////printf("symb::%d %s", cnt,symbol);
 	s[cnt] = malloc (sizeof(struct symtab));
 	s[cnt]->symbol = symbol;
 	s[cnt]->init = 0;
-	//printf("symb2::%d %s %d", cnt,s[cnt]->symbol,s[cnt]->init);
+	////printf("symb2::%d %s %d", cnt,s[cnt]->symbol,s[cnt]->init);
 	cnt++;
 }
 
@@ -160,17 +120,17 @@ void init_symtab(char *symb){
 	int k,flag=0,j;
 	char *str;
 	str = strdup(symb);
-	//printf("matchww %s ",symb);
-	//printf("%d", scope_stack[scope_count]);
+	////printf("matchww %s ",symb);
+	////printf("%d", scope_stack[scope_count]);
 	if(scope_count==0)
 		j=0;
 	else
 		j=scope_stack[scope_count-1];
 	for(k=j;k<cnt;k++){
-		//printf("check %s and %s",str, s[i]->symbol);
-		//printf("init smy %d %d %d", k,j,cnt);
+		////printf("check %s and %s",str, s[i]->symbol);
+		////printf("init smy %d %d %d", k,j,cnt);
 		if(strcmp(str,s[k]->symbol)==0){
-			//printf("match");
+			////printf("match");
 			flag = 1;
 			s[k]->init = 1;
 			break;
@@ -189,17 +149,17 @@ void init_symtab(char *symb){
 void add_scope(){
 	//push_scope(cnt);
 	scope_stack[scope_count] = cnt;
-	//printf(" count %d scope_stack[scope count]= %d = %d",scope_count,scope_stack[scope_count],cnt);
+	////printf(" count %d scope_stack[scope count]= %d = %d",scope_count,scope_stack[scope_count],cnt);
 	scope_count++;
-	//printf("%d", scope_count);
+	////printf(" %d\n", scope_count);
 }
 
 void pop_scope(){
 	int i,k;
 	i = scope_stack[--scope_count];
-	//printf("%d scop",i);
+	////printf("%d scop",i);
 	for(k=i;k<cnt;k++){
-		//printf("here!! %d %d %s %d %d\n",i,k,s[k]->symbol,s[k]->init,cnt);
+		////printf("here!! %d %d %s %d %d\n",i,k,s[k]->symbol,s[k]->init,cnt);
 	}
 	cnt = i;
 }
@@ -213,7 +173,7 @@ void pushSymtab(char *v){
 	s[cnt]->init = 0;
 	cnt++;
 	for(i=0;i<cnt;i++){
-		printf("%s", s[i]->symbol);
+		//printf("%s", s[i]->symbol);
 	}
 }
 */
@@ -224,11 +184,11 @@ symtab_add(char *symbol)
 {
 	if(is_symbol(symbol))
 		return;
-	//printf("\n***adding symbol %s\n", symbol);
+	////printf("\n***adding symbol %s\n", symbol);
 	symbols[max_symbols++] = strdup(symbol);	
 	int i;
 	/*for(i = 0;i<max_symbols;i++){
-		printf("%s ", symbols[i]);
+		//printf("%s ", symbols[i]);
 	}*/
 	
 }
@@ -236,46 +196,24 @@ symtab_add(char *symbol)
 int
 is_symbol(char *symbol)
 {
-	/*printf("looking for %s\n", symbol);*/
+	/*//printf("looking for %s\n", symbol);*/
 	int i;
 	for(i = 0; i < max_symbols; i++){
 		if(!strcmp(symbol, symbols[i])){
-			//printf("true\n");
+			////printf("true\n");
 		return 1;
 		}
 	}
 	return 0;
 }
 	
-void print_symb(){
-	int i;
-	struct node* printNode;
-	/*for(i = 0;i<max_symbols;i++){
-		printf("symbols: %s", symbols[i]);
-	}*/
-	i=0;
-	printNode = startNode;
-	//printf("%s", startNode->symbol);
-/*	while(printNode->next[i]!=NULL){
-		//printf("%d %s\n", i++, (printNode->next1)->symbol);
-		if(printNode->next2){
-			//printf("2: %s \n",(printNode->next2)->symbol);
-		}
-		printNode = printNode->next[i];
-	}
-	//printf("\nsymtab\n");
-	for(i=0;i<cnt;i++){
-		printf("%d %s %d\n",i,s[i]->symbol,s[i]->init);
-	}*/
-}	
-	
 void push(struct node *item){
-	//printf("st %d",stacktop);
+	////printf("st %d",stacktop);
 	stack[stacktop++] = item;
 }
 
 struct node* pop(){
-	//printf("returning ");
+	////printf("returning ");
 	return stack[--stacktop];
 }
 
@@ -313,84 +251,32 @@ int traverse_graph(struct node *graph_node){
 		//printf("cnt3: %d ",var_array_count);
 		var_array_add(graph_node);
 	}
+	if(graph_node->type==malloc_node){
+		int i;
+		allocation_node[allocation_count] = malloc(sizeof(struct malloc));
+		allocation_node[allocation_count]->index = malloc_array_count++;
+		allocation_node[allocation_count]->points = malloc(sizeof(int)*10);
+		allocation_node[allocation_count]->count = 0;
+		for(i=var_array_count-1;i>=0;i--){
+			if(strcmp(graph_node->symbol,var_array[i])==0)
+				break;
+		}
+		allocation_node[allocation_count]->points[allocation_node[allocation_count]->count++] = i;
+		allocation_count++;
+	}
 	if(graph_node->type==rhs){
-				if(strcmp(graph_node->symbol,"malloc")!=0){
-					
-				int i,index=101,flag=0;
-				//printf("rhs \n");
-				for(i=var_array_count-1;i>=0;i--){
-					//printf("%d ",i);
-					//printf("%s %s\n",var_array[i], graph_node->symbol);
-					if(strcmp(var_array[i],graph_node->symbol)==0){
-						//printf("found %s %s \n",var_array[i],graph_node->symbol);
-						index = i;
-						break;
-					}
-				}
-				for(i=init_array_count-1;i>=0;i--){
-					//printf("%d %d ", i,index);
-					if(init_array[i]==index){
-						printf("index: %d\n",index);
-						flag=1;
-						break;
-					}
-				}
-				if(flag==0){
-					printf("index: %d\n",index);
-					printf("error\n");
-				}
-				}
+		
+		int valid = check_rhs_validity(graph_node);
 	}			
 		//	init_symtab(graph_node->symbol);
 	if(graph_node->type==lhs){  //needs altering
-				int i,index,flag=0,j=0,repeat=0;
-				//print("lhs\n");
+				//printf("lhs\n");
 				/*if(strcmp((graph_node->next[0])->symbol,"malloc")==0){
-					printf("malloc here\n");
+					//printf("malloc here\n");
 				}*/
 				
-				if(var_array_count==0){
-					var_array_add(graph_node);
-					
-				}
-				j = var_array_count-1;
-				//print("cnt: %d ", var_array_count);
-				for(i=j;i>=0;i--){
-					//print("%d lhsfor \n",i);
-					if(strcmp(var_array[i],graph_node->symbol)==0){
-						flag = 1;
-						index = i;
-						//print("%d",index);
-						break;
-					}
-				}
-				if(flag==0){
-						//print("3 %d",var_array_count);
-						var_array_add(graph_node);
-						index = var_array_count-1;
-						/*init_array[init_array_count] = var_array_count-1;
-						init_array_count++;*/
+				check_lhs_validity(graph_node);
 				
-				}
-				if(strcmp((graph_node->next[0])->symbol,"malloc")==0){
-					malloc_array_add(graph_node);
-				}
-				else{
-				//print("2 %d ",var_array_count);
-				for(i=0;i<init_array_count;i++){ //should it be backwards?
-							if(init_array[i] == index){
-							repeat = 1;
-							printf("repeat %d %d\n",init_array[i],index);
-							break;
-							}
-						}
-						if(repeat==0){	
-							printf("not rep %d \n",index);
-							init_array[init_array_count] = index;
-							init_array_count++;
-						
-						}				
-				}
 	}
 	if(strcmp(graph_node->symbol,"free")==0){
 		remove_malloc_array(graph_node->next[0]);
@@ -398,19 +284,19 @@ int traverse_graph(struct node *graph_node){
 	
 	if((graph_node->next[0]==NULL)){
 		// return uninitialised variables
-		printf("end of path %s\n",graph_node->symbol);
+		//printf("end of path %s\n",graph_node->symbol);
 		print_init_array();
 		//pop_scope();
 		return 1;
 	}
 	//recursive call to graph_node->next1
-	//print("next0 %s\n",graph_node->symbol);
+	//printf("next0 %s\n",graph_node->symbol);
 	traverse_graph(graph_node->next[next_count++]);
 	//recursive call to graph_node->next1
 
 	while(graph_node->next[next_count]!=NULL){
 		int i;
-		//print("next[%d] %s\n",next_count,graph_node->symbol);	
+		//printf("next[%d] %s\n",next_count,graph_node->symbol);	
 		var_array_count = pop_var_array_stack();
 		//print("returned var aray coun %d next count = %d \n", var_array_count,next_count);
 		init_array_count = pop_init_array_stack();
@@ -426,7 +312,7 @@ int traverse_graph(struct node *graph_node){
 	
 void var_array_add(struct node *graph_node){
 	int i;
-	printf("adding %s to var array\n",graph_node->symbol);
+	//printf("adding %s to var array\n",graph_node->symbol);
 	//var_array[var_array_count] = malloc(sizeof(char *));
 	var_array[var_array_count++]=graph_node->symbol;
 	//var_array_count++;
@@ -462,46 +348,207 @@ int pop_init_array_stack(){
 
 void print_init_array(){
 		int i;
-		printf("var array:\n");
+		//fprintf(fp, "This is a string which is written to a file\n");
+		//fprintf(fp, "The string has words and keyword \n");
+		//printf("{\"array\":[");
 		for(i=0;i<var_array_count;i++){
-			printf("|	|	|\n");
-			printf("    %d	    %s\n",i, var_array[i]);
-			printf("|	|	|\n");
-			printf("_________________\n");
+			//printf("|	|	|\n");
+			//printf("{\"line number:\": %d,",lineno);
+			//printf("{\"%d\":\"%s\"}",i, var_array[i]);
+			//printf("|	|	|\n");
+			//printf("_________________\n");
+			//printf("{ \"count\" : \"");
+			if(i!=var_array_count-1){
+				//printf(",");
+			}
+			
 		}
-		printf("init array:\n");
+		//printf("]}");
+		//fclose(fp);
+		//printf("init array:\n");
+		printf("{\"init_array\":[");
 		for(i=0;i<init_array_count;i++){
-			printf("|	|	|\n");
-			printf("    %d	    %d \n",i, init_array[i]);
-			printf("|	|	|\n");
-			printf("_________________\n");
+			//printf("|	|	|\n");
+			printf("{\"%d\":\"%s\"}",i, init_array[i]);
+			//printf("|	|	|\n");
+			//printf("_________________\n");
+			if(i!=init_array_count-1){
+				printf(",");
+			}
+			
 		}
-		printf("malloc array:\n");
-		for(i=0;i<malloc_array_count;i++){
-			printf("|	|	|\n");
-			printf("    %d	    %s\n",i, malloc_array[i]);
-			printf("|	|	|\n");
-			printf("_________________\n");
-		}
-		
+		printf("]}");
+		//printf("memory leaks:\n");
+		/*i=0;
+		for(i=0;i<allocation_count;i++){
+				int j;
+				for(j=0;j<allocation_node[i]->count;j++){
+					printf("i:%d j:%d %d ",i,j,allocation_node[i]->points[j]);
+				}
+				printf("%d\n", allocation_count);
+			
+		}*/
+			
 }
 
 void malloc_array_add(struct node* graph_node){
-	printf("\nadding to malloc array %s\n",graph_node->symbol);
+	//printf("\nadding to malloc array %s\n",graph_node->symbol);
 	malloc_array[malloc_array_count++] = graph_node->symbol;
 }	
 
 void remove_malloc_array(struct node* graph_node){
-	int i,index;
-	printf("\nremoving from malloc array %s\n",graph_node->symbol);
-	for(i=0;i<malloc_array_count;i++){
-		if(strcmp(malloc_array[i],graph_node->symbol)==0){
-			index = i;
+	int i,j,k,index,flag=0;
+	for(i=var_array_count-1;i>=0;i--){
+		if(strcmp(var_array[i],graph_node->symbol)==0)
 			break;
+	}
+	for(j=0;j<allocation_count;j++){
+			//printf("j %d",j);
+			for(k=0;k<allocation_node[j]->count;k++){
+				//printf("K %d",k);
+				if(allocation_node[j]->points[k]==i){
+					//printf("found");
+					flag = 1;
+					break;
+				}
+			}
+			if(flag==1)
+				break;
+			
+	}
+	//printf("allocation_node[j]->count = %d",allocation_node[j]->count);
+	//if((allocation_node[j]->count)-1==0){
+		//printf("freed");
+		for(i=j;i<allocation_count-1;i++){
+			//printf("i: %d\n",i);
+			allocation_node[i] = allocation_node[i+1];
 		}
-	}
-	for(i=index;i<malloc_array_count-1;i++){
-		malloc_array[i] = malloc_array[i+1];
-	}
-	malloc_array_count--;
+		free(allocation_node[i+1]);
+		allocation_count--;
+		
+	//}
+	/*else{//change
+		printf("SS");
+			for(i=k;i<allocation_node[j]->count;i++){
+				printf("entered");
+				allocation_node[j]->points[i] = allocation_node[j]->points[i+1];
+		}
+	}*/
 }
+
+void check_lhs_validity(struct node * graph_node){
+	int i,index,flag=0,j=0,repeat=0,valid;
+	int isAllocationNode=0;
+	if(var_array_count==0){
+		var_array_add(graph_node);	
+		index = 0;
+	}
+	//valid = check_rhs_validity(graph_node->next[0]);
+	//if(valid!=0){
+	j = var_array_count-1;
+				//printf("cnt: %d ", var_array_count);
+	for(i=j;i>=0;i--){
+					//printf("%d lhsfor %s %s \n",i,var_array[i],graph_node->symbol	);
+					if(strcmp(var_array[i],graph_node->symbol)==0){
+						flag = 1;
+						index = i;
+						//printf("%d",index);
+						break;
+					}
+				}
+				if(flag==0){
+						//printf("3 %d",var_array_count);
+						var_array_add(graph_node);
+						index = var_array_count-1;
+						/*init_array[init_array_count] = var_array_count-1;
+						init_array_count++;*/
+				
+				}
+				if(graph_node->next[0]){
+				//printf("type %d\n", (graph_node->next[0])->type);//problem
+				if((graph_node->next[0])->type==3){
+					struct node *temp;
+					int i,j,k,flag=0;
+					//printf("type 3!");
+					//printf("%d\n",index);
+					temp = graph_node->next[0];
+					for(k=var_array_count-1;k>=0;k--){
+						//printf("%s %s", var_array[k],temp->symbol);
+						if(strcmp(var_array[k],temp->symbol)==0){
+							//printf("%d",index);
+							break;
+						}
+					}
+					//printf("%d %d\n",k,index);
+					for(i=0;i<allocation_count;i++){
+						//printf("1");
+						for(j=0;j<allocation_node[i]->count;j++){
+							//printf("2 %d\n",allocation_node[i]->count);
+								if(k == allocation_node[i]->points[j]){ //
+									//printf("done");
+									allocation_node[i]->points[allocation_node[i]->count] = index;
+									allocation_node[i]->count++;
+									//printf("%d %d %d",index,allocation_node[i]->count,allocation_node[i]->points[allocation_node[i]->count-1]);
+									flag = 1;
+									isAllocationNode=1;
+									break;
+								}
+						}
+						if(flag==1)
+								break;
+					}
+				}
+				}
+				if(isAllocationNode==0){
+				//printf("2 %d ",var_array_count);
+				for(i=0;i<init_array_count;i++){ //should it be backwards?
+							if(init_array[i] == index){
+							repeat = 1;
+							//printf("repeat %d %d\n",init_array[i],index);
+							break;
+							}
+				}
+				if(repeat==0){	
+							printf("not rep %d \n",index);
+							init_array[init_array_count] = index;
+							init_array_count++;
+						
+						}				
+				}
+	//}
+}
+
+int check_rhs_validity(struct node* graph_node){
+	if(strcmp(graph_node->symbol,"malloc")!=0){
+					
+				int i,index=101,flag=0;
+				//printf("rhs \n");
+				for(i=var_array_count-1;i>=0;i--){
+					//printf("%d ",i);
+					//printf("%s %s\n",var_array[i], graph_node->symbol);
+					if(strcmp(var_array[i],graph_node->symbol)==0){
+						//printf("found %s %s \n",var_array[i],graph_node->symbol);
+						index = i;
+						break;
+					}
+				}
+				for(i=init_array_count-1;i>=0;i--){
+					//printf("%d %d ", i,index);
+					if(init_array[i]==index){
+						//printf("index: %d\n",index);
+						flag=1;
+						break;
+					}
+				}
+				if(flag==0){
+					//printf("index: %d\n",index);
+					//printf("error\n");
+					return 0;
+				}
+				}
+				return 1;
+}
+
+
+//add case for c=a to malloc nodes - done
+//
