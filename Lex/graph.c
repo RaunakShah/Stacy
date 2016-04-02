@@ -11,9 +11,15 @@ int init_array_count=0;
 int scope_count=0;
 int var_array_stack_count=0;
 int init_array_stack_count=0;
+int init_var_used_stack_count=0;
 int malloc_array_count=0;
 int allocation_count=0;
-extern int lineno;
+int init_var_used_count=0;
+int line_number = 1;
+int final_line_count=0;
+int first_print=0;
+int prev_line = 0;
+
 void createGraph(){
 	s = malloc (sizeof(struct symtab *)*10);
 	/*s[cnt] = malloc (sizeof(struct symtab *));
@@ -31,6 +37,8 @@ void createNode(char *symbols, int type_of){
 	newNode = (struct node*) malloc (sizeof(struct node));	
 	newNode->symbol = strdup(symbols);
 	newNode->type = type_of;
+	newNode->line = line_number;
+	final_line_count = line_number;
 	//printf("%s",newNode->symbol);
 	//newNode->next1 = NULL;
 	//newNode->next2 = NULL;
@@ -225,20 +233,24 @@ int traverse_graph(struct node *graph_node){
 	if(graph_node->type==switch_node){
 		push_var_array_stack(var_array_count);
 		push_init_array_stack(init_array_count);
+		push_init_var_used_stack(init_var_used_count);
 
 	}
 	if(graph_node->type==if_node){
 		//printf("1 push %d %d", var_array_count,init_array_count);
 		push_var_array_stack(var_array_count);
 		push_init_array_stack(init_array_count);
+		push_init_var_used_stack(init_var_used_count);
 	}
 	if(graph_node->type==for_node){
 		push_var_array_stack(var_array_count);
 		push_init_array_stack(init_array_count);
+		push_init_var_used_stack(init_var_used_count);
 	}
 	if(graph_node->type==while_node){
 		push_var_array_stack(var_array_count);
 		push_init_array_stack(init_array_count);
+		push_init_var_used_stack(init_var_used_count);
 	}
 	if(graph_node->type==function_parameter){
 		var_array_add(graph_node);
@@ -285,7 +297,7 @@ int traverse_graph(struct node *graph_node){
 	if((graph_node->next[0]==NULL)){
 		// return uninitialised variables
 		//printf("end of path %s\n",graph_node->symbol);
-		print_init_array();
+		//print_init_array(graph_node);
 		//pop_scope();
 		return 1;
 	}
@@ -300,9 +312,10 @@ int traverse_graph(struct node *graph_node){
 		var_array_count = pop_var_array_stack();
 		//print("returned var aray coun %d next count = %d \n", var_array_count,next_count);
 		init_array_count = pop_init_array_stack();
-		
+		init_var_used_count = pop_init_var_used_stack();
 		push_var_array_stack(var_array_count);
 		push_init_array_stack(init_array_count);
+		push_init_var_used_stack(init_var_used_count);
 	
 		traverse_graph(graph_node->next[next_count++]);
 	}
@@ -333,6 +346,10 @@ void push_init_array_stack(int count){
 	//print("init array count in puah = %d and count = %d\n", init_array_count,count);
 }
 
+void push_init_var_used_stack(int count){
+		init_var_used_stack[init_var_used_stack_count++] = count;
+}
+
 int pop_var_array_stack(){
 	--var_array_stack_count;
 	//print("returnng %d var arr count\n",var_array_stack[var_array_stack_count]);
@@ -346,7 +363,12 @@ int pop_init_array_stack(){
 	return init_array_stack[init_array_stack_count];
 }
 
-void print_init_array(){
+int pop_init_var_used_stack(){
+	--init_var_used_stack_count;
+	return init_var_used_stack[init_var_used_stack_count];
+}
+
+void print_init_array(struct node* graph_node){
 		int i;
 		//fprintf(fp, "This is a string which is written to a file\n");
 		//fprintf(fp, "The string has words and keyword \n");
@@ -366,10 +388,10 @@ void print_init_array(){
 		//printf("]}");
 		//fclose(fp);
 		//printf("init array:\n");
-		printf("{\"init_array\":[");
-		for(i=0;i<init_array_count;i++){
+		//printf("{\"init_array\":[");
+		/*for(i=0;i<init_array_count;i++){
 			//printf("|	|	|\n");
-			printf("{\"%d\":\"%s\"}",i, init_array[i]);
+			printf("{\"%d\":\"%s\"}",i, var_array[init_array[i]]);
 			//printf("|	|	|\n");
 			//printf("_________________\n");
 			if(i!=init_array_count-1){
@@ -377,7 +399,33 @@ void print_init_array(){
 			}
 			
 		}
-		printf("]}");
+		printf("]}");*/
+		//printf("%d",prev_line);
+		if(first_print==0){
+			printf("{");
+		}	
+		if(graph_node->line==prev_line){
+				printf(",\"%s\"",var_array[init_var_used]);
+			}
+		else{
+				if(first_print!=0)
+					printf("],");
+		//printf("\"uninitialized_variables%d\":[",first_print);
+		/*for(i=0;i<init_var_used_count;i++){
+			int j,flag=0;
+				printf("{\"%s\":\"%d\"}", var_array[init_var_used[i]],graph_node->line);	
+			if(i!=var_array_count-1){
+				printf(",");
+			}
+		
+		}*/
+		printf("\"%d\":[\"%s\"", graph_node->line,var_array[init_var_used]);
+		}
+		if(graph_node->line==final_line_count){
+			printf("]}");
+		}
+		prev_line = graph_node->line;
+		first_print++;
 		//printf("memory leaks:\n");
 		/*i=0;
 		for(i=0;i<allocation_count;i++){
@@ -509,7 +557,7 @@ void check_lhs_validity(struct node * graph_node){
 							}
 				}
 				if(repeat==0){	
-							printf("not rep %d \n",index);
+							//printf("not rep %d \n",index);
 							init_array[init_array_count] = index;
 							init_array_count++;
 						
@@ -543,6 +591,8 @@ int check_rhs_validity(struct node* graph_node){
 				if(flag==0){
 					//printf("index: %d\n",index);
 					//printf("error\n");
+					init_var_used = index;
+					print_init_array(graph_node);
 					return 0;
 				}
 				}
@@ -551,4 +601,5 @@ int check_rhs_validity(struct node* graph_node){
 
 
 //add case for c=a to malloc nodes - done
-//
+//print at error statement in rhs validity not end of scope
+

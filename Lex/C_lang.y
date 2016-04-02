@@ -4,6 +4,7 @@
 #include "graph.h"
 #define YYDEBUG 1
 extern char yytext[];
+extern int line_number;
 %}
 
 %union{
@@ -51,7 +52,7 @@ postfix_expression
 	| postfix_expression '(' ')'  {  	 }
 	| postfix_expression '(' argument_expression_list ')'  { /* printf("post22 %s",$1);/*/ if(strcmp($1,"free")==0){ createNode($1,other); createNode($3,other);	}}
 	| postfix_expression '.' IDENTIFIER  {  	 }
-	| postfix_expression PTR_OP IDENTIFIER  {  $$=$3;	/*createNode($3,lhs);*/ printf("11/%s",$$); }
+	| postfix_expression PTR_OP IDENTIFIER  {  $$=$3;	/*createNode($3,lhs);*/ /*printf("11/%s",$$);/*/ }
 	| postfix_expression INC_OP  {  	 }
 	| postfix_expression DEC_OP
 	 {  	 }
@@ -150,7 +151,7 @@ conditional_expression
 assignment_expression
 	: conditional_expression { /* printf("assignment_exp1 %s ",$1);/*/	 }
 	| unary_expression assignment_operator assignment_expression
-	 {   printf("2");createNode($1,lhs); printf("3");if($3!=NULL){createNode($3,rhs);}/*init_symtab($1); /*printf("assiexp2 %s",$3);	/*/ }
+	 {  /* printf("2");/*/createNode($1,lhs);/* printf("3");/*/if($3!=NULL){createNode($3,rhs);}/*init_symtab($1); /*printf("assiexp2 %s",$3);	/*/ }
 	;
 assignment_operator
 	: '=' {  	 }
@@ -195,9 +196,9 @@ init_declarator_list
 	| init_declarator_list ',' init_declarator { /*printf("init_Dec2");createNode($3,declaration);*/}
 	;
 init_declarator
-	: declarator {	printf("4");createNode($1,declaration); /*$$=$1; printf("initdec1 ");/*/}
+	: declarator {	/*printf("4");/*/createNode($1,declaration); /*$$=$1; printf("initdec1 ");/*/}
 	| declarator '=' initializer
-	 { printf("lhsS %s",$1); printf("5");createNode($1,lhs); if($3!=NULL){ printf(" rhs %s",$3);createNode($3,rhs);}/*printf("=init %s",$3); /*rhs value*/	  }
+	 {/* printf("lhsS %s",$1);printf("5");/*/createNode($1,lhs); if($3!=NULL){ /*printf(" rhs %s",$3);/*/createNode($3,rhs);}/*printf("=init %s",$3); /*rhs value*/	  }
 	;
 storage_class_specifier
 	: EXTERN {  	 }
@@ -223,8 +224,8 @@ type_specifier
 		 {  	 }
 	;
 struct_or_union_specifier
-	: struct_or_union IDENTIFIER  '{' struct_declaration_list '}' {  symtab_add($2); printf("a");	 }
-	| struct_or_union '{' struct_declaration_list '}' {  printf("b");	 }
+	: struct_or_union IDENTIFIER  '{' struct_declaration_list '}' {  symtab_add($2); /*printf("a");/*/	 }
+	| struct_or_union '{' struct_declaration_list '}' {  /*printf("b");/*/	 }
 	| struct_or_union IDENTIFIER
 		 { symtab_add($2); 	 }
 	;
@@ -234,12 +235,12 @@ struct_or_union
 			 {  	 }
 	;
 struct_declaration_list
-	: struct_declaration {  printf("bb"); createNode($1,declaration);	 }
+	: struct_declaration { /* printf("bb"); /*/createNode($1,declaration);	 }
 	| struct_declaration_list struct_declaration
-		 {  printf("bb87");	createNode($2,declaration); }
+		 { /* printf("bb87");/*/	createNode($2,declaration); }
 	;
 struct_declaration
-	: specifier_qualifier_list struct_declarator_list ';' {$$=$2;printf("S");}
+	: specifier_qualifier_list struct_declarator_list ';' {$$=$2;}
 	;
 	
 specifier_qualifier_list
@@ -287,14 +288,14 @@ declarator
 		 {  	$$ = $1; }
 	;
 direct_declarator
-	: IDENTIFIER {  $$=$1;  printf("1");}
-	| '(' declarator ')' {  printf("2");	 }
-	| direct_declarator '[' constant_expression ']' {printf("3");  	 }
-	| direct_declarator '[' ']' {  	 printf("4");}
-	| direct_declarator '(' parameter_type_list ')' {printf("5");  $$ = $1;	 }
-	| direct_declarator '(' identifier_list ')' {  	printf("6"); }
+	: IDENTIFIER {  $$=$1; /* printf("1");/*/}
+	| '(' declarator ')' {  /*printf("2");/*/	 }
+	| direct_declarator '[' constant_expression ']' {/*printf("3");/*/  	 }
+	| direct_declarator '[' ']' {  	 /*printf("4");/*/}
+	| direct_declarator '(' parameter_type_list ')' {/*printf("5");/*/  $$ = $1;	 }
+	| direct_declarator '(' identifier_list ')' {  	/*printf("6"); /*/}
 	| direct_declarator '(' ')'
-		 {  	 printf("7");}
+		 {  	 /*printf("7");/*/}
 	;
 pointer
 	: '*' {  	 }
@@ -320,8 +321,8 @@ parameter_list
 		 {  	 }
 	;
 parameter_declaration
-	: declaration_specifiers declarator {  printf("1");	/*createNode($2,function_parameter);*/	 }
-	| declaration_specifiers abstract_declarator {  printf("2");	 }
+	: declaration_specifiers declarator { /*/ printf("1");	/*/createNode($2,function_parameter);	 }
+	| declaration_specifiers abstract_declarator {  /*printf("2");/*/	 }
 	| declaration_specifiers
 		 {  	 }
 	;
@@ -371,7 +372,7 @@ statement
 	| expression_statement {  /*createNode($1,other);/*printf("\nexpression %s\n",$1);/*/}
 	| selection_statement { }
 	| iteration_statement { /*printf("iteration");*/  }
-	| jump_statement		 {  printf("h");	/*createNode("jump_statement");*/printf("jjmp"); }
+	| jump_statement		 { /* printf("h");/*/	/*createNode("jump_statement");*//*printf("jjmp");/*/ }
 	
 ;
 
@@ -383,13 +384,13 @@ labeled_statement
 	;
 	
 curly_brace
-	: '{' { printf("befr");add_scope();}
+	: '{' { /*printf("befr");/*add_scope();*/}
 	;
 compound_statement
 	: curly_brace '}' {  pop_scope();	 }
-	| curly_brace statement_list '}' { pop_scope(); createNode("}",other);/*printf("cmp1");/*/	 }
-	| curly_brace declaration_list '}' { pop_scope();createNode("}",other);/*printf("cmp2"); 	/*/ }
-	| curly_brace declaration_list statement_list '}' { pop_scope();createNode("}",other);/*printf("cmp3");//*/}
+	| curly_brace statement_list '}' { /*pop_scope();/*//*printf("cmp1");/*/	 }
+	| curly_brace declaration_list '}' { /*pop_scope();/*//*printf("cmp2"); 	/*/ }
+	| curly_brace declaration_list statement_list '}' {/* pop_scope();/*//*printf("cmp3");/*/}
 	
 	;
 declaration_list
@@ -403,16 +404,16 @@ statement_list
 		
 	;
 expression_statement
-	: ';' {  	 }
+	: ';' {  }
 	| expression ';'
 		 { /* printf("exp");/*/	 }
 	;
 if_statement
-	: IF '(' expression ')' { /*printf("if-expression-%s ", $3);/*/ printf("6");createNode($3,if_node); push(currentNode);}
+	: IF '(' expression ')' { /*printf("if-expression-%s ", $3);/*/ createNode($3,if_node);/*printf("6 %s",currentNode->symbol);/*/ push(currentNode);}
 	
 selection_statement
-	: if_statement statement { printf("if");currentNode = pop(); 	}
-	| if_statement statement ELSE { push(currentNode); } statement { currentNode = pop(); 	 }
+	: if_statement statement { /*printf("if");/*/ currentNode = pop();/* printf("current node pop = %s",currentNode->symbol);/*/	}
+	| if_statement statement ELSE {/*printf("current node pop = %s",currentNode->symbol);/*/ currentNode = pop(); /*createNode("else",other);/*/ push(currentNode);  } statement { currentNode = pop(); 	 }
 	| switch_statement statement {currentNode = pop(); }
 	;
 switch_statement
@@ -422,19 +423,22 @@ for_statement
 	: FOR '(' expression_statement expression_statement ')' { }
 	;
 for_statement_extended
-	: FOR '(' expression_statement expression_statement expression ')' { }
+	: FOR '(' expression_statement expression_statement expression ')' { createNode($3,for_node); push(currentNode);/*printf("%s %s %s",$3,$4,$5);*/ }
+	;
+while_statement
+	: WHILE '(' expression ')' { createNode($3,while_node); push(currentNode);}
 	;
 iteration_statement
-	: WHILE '(' expression ')' statement {  	 }
+	: while_statement statement {  currentNode = pop();	 }
 	| DO statement WHILE '(' expression ')' ';' {  	 }
-	| for_statement statement 
+	| for_statement statement { currentNode = pop(); }
 	| for_statement_extended statement
 		 { }
 	;
 jump_statement
 	: GOTO IDENTIFIER ';'
 	| CONTINUE ';'
-	| BREAK ';' { printf("hello");	createNode("break",other); }
+	| BREAK ';' { /*printf("hello");/*/	createNode("break",other); }
 	| RETURN ';' {	 }
 	| RETURN expression ';'
 		 {  	 }
@@ -444,14 +448,14 @@ translation_unit
 	| translation_unit external_declaration { }
 	;
 external_declaration
-	: function_definition {	printf("hello");  int a = traverse_graph(startNode); print_symb(); }
+	: function_definition {	/*printf("hello");/*/  int a = traverse_graph(startNode);  }
 	| declaration { }
 
 	;
 function_definition
-	: declaration_specifiers declarator declaration_list {createGraph();printf("1.%s 2.%s 3.%s",$1,$2,$3);} compound_statement {	}
-	| declaration_specifiers declarator {createGraph(); printf("%s",$2);createNode($2,other);} compound_statement {	 }
-	| declarator declaration_list {createGraph();printf("@");} compound_statement {		 }
+	: declaration_specifiers declarator declaration_list {createGraph();/*printf("1.%s 2.%s 3.%s",$1,$2,$3);/*/} compound_statement {	}
+	| declaration_specifiers declarator {createGraph(); /*printf("%s",$2);/*/createNode($2,other);} compound_statement {	 }
+	| declarator declaration_list {createGraph();/*printf("@");/*/} compound_statement {		 }
 	| declarator{createGraph();} compound_statement {}
 	;
 %%
