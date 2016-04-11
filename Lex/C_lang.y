@@ -47,7 +47,7 @@ primary_expression: IDENTIFIER  {/*printf("primat %s",$1);/*/ }
 	;
 	
 postfix_expression
-	: primary_expression { /* printf("post1");  /*/	 }
+	: primary_expression { /* printf("post1");/*/   }
 	| postfix_expression '[' expression ']'  {  	 }
 	| postfix_expression '(' ')'  {  	 }
 	| postfix_expression '(' argument_expression_list ')'  { /* printf("post22 %s",$1);/*/ if(strcmp($1,"free")==0){ createNode($1,other); createNode($3,other);	}}
@@ -63,25 +63,25 @@ argument_expression_list
 	 {  	 }
 	;
 unary_expression
-	: postfix_expression { /* printf("unary %s",$1);/*/	/* $$=$1;*/ }
-	| INC_OP unary_expression {  	/*printf("unary2");/*/ }
-	| DEC_OP unary_expression {  	/*printf("unary3");/*/ }
-	| unary_operator cast_expression {  	/* printf("unary4");/*/}
-	| SIZEOF unary_expression {  	 /*printf("signment");/*/}
+	: postfix_expression {  /*printf("unary1 %s",$1);/*/	/* $$=$1;*/ }
+	| INC_OP unary_expression {  	printf("unary2");/*/ }
+	| DEC_OP unary_expression {  	printf("unary3");/*/ }
+	| unary_operator cast_expression {  	printf("unary4");/*/}
+	| SIZEOF unary_expression {  	 printf("signment");/*/}
 	| SIZEOF '(' type_name ')'
 	 {  	 }
 	;
 unary_operator
 	: '&' {  	 }
 	| '*' {  	 }
-	| '+' {  	 }
+	| '+' {  printf("D1");	 }
 	| '-' {  	 }
 	| '~' {  	 }
 	| '!'
 	 {  	 }
 	;
 cast_expression
-	: unary_expression {  	 }
+	: unary_expression { /* printf("D2");	*/ }
 	| '(' type_name ')' cast_expression
 		 {  	 }
 	;
@@ -448,7 +448,7 @@ translation_unit
 	| translation_unit external_declaration { }
 	;
 external_declaration
-	: function_definition {	/*printf("hello");/*/  int a = traverse_graph(startNode);  }
+	: function_definition {	/*printf("hello");/*/  int a = traverse_graph_for_init_var(startNode);int b = traverse_graph_for_mem_leaks(startNode);}
 	| declaration { }
 
 	;

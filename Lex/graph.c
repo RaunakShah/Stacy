@@ -19,6 +19,8 @@ int line_number = 1;
 int final_line_count=0;
 int first_print=0;
 int prev_line = 0;
+int mem_path_array_count=0;
+int mem_freed_array_count=0;
 
 void createGraph(){
 	s = malloc (sizeof(struct symtab *)*10);
@@ -225,9 +227,9 @@ struct node* pop(){
 	return stack[--stacktop];
 }
 
-int traverse_graph(struct node *graph_node){
+int traverse_graph_for_init_var(struct node *graph_node){
 	int i;
-	int type,next_count=0;
+	int type,next_count=0,interim_count=0,check_for_common=0,common_array[10],common_array_count=0;
 	type = graph_node->type;
 	//printf("graph symb %s type %d var arr cnt%d\n",graph_node->symbol,graph_node->type,var_array_count);
 	if(graph_node->type==switch_node){
@@ -263,6 +265,96 @@ int traverse_graph(struct node *graph_node){
 		//printf("cnt3: %d ",var_array_count);
 		var_array_add(graph_node);
 	}
+	/*if(graph_node->type==malloc_node){
+		int i;
+		allocation_node[allocation_count] = malloc(sizeof(struct malloc));
+		allocation_node[allocation_count]->index = malloc_array_count++;
+		allocation_node[allocation_count]->points = malloc(sizeof(int)*10);
+		allocation_node[allocation_count]->count = 0;
+		for(i=var_array_count-1;i>=0;i--){
+			if(strcmp(graph_node->symbol,var_array[i])==0)
+				break;
+		}
+		allocation_node[allocation_count]->points[allocation_node[allocation_count]->count++] = i;
+		allocation_count++;
+	}*/
+	if(graph_node->type==rhs){
+		
+		int valid = check_rhs_validity(graph_node);
+	}			
+		//	init_symtab(graph_node->symbol);
+	if(graph_node->type==lhs){  //needs altering
+				//printf("lhs\n");
+				/*if(strcmp((graph_node->next[0])->symbol,"malloc")==0){
+					//printf("malloc here\n");
+				}*/
+				
+				check_lhs_for_init_var(graph_node);
+				
+	}
+	/*if(strcmp(graph_node->symbol,"free")==0){
+		remove_malloc_array(graph_node->next[0]);
+	}*/
+	
+	if((graph_node->next[0]==NULL)){
+		// return uninitialised variables
+		//printf("end of path %s\n",graph_node->symbol);
+		//print_init_array(graph_node);
+		//pop_scope();
+		return 1;
+	}
+	//recursive call to graph_node->next1
+	//printf("next0 %s %d\n",graph_node->symbol,next_count);
+	traverse_graph_for_init_var(graph_node->next[next_count++]);
+	//recursive call to graph_node->next1
+
+	while(graph_node->next[next_count+1]!=NULL){
+		int i;
+		//printf("next[%d] %s\n",next_count,graph_node->symbol);	
+		interim_count = init_array_count;
+		check_for_common = init_array_stack[init_array_stack_count-1];
+		//printf("%d %d", interim_count,check_for_common);
+		traverse_graph_for_init_var(graph_node->next[next_count++]);
+	}
+	if(graph_node->next[next_count]!=NULL){
+		//printf("next[%d] %s\n",next_count,graph_node->symbol);	
+		int i,j;
+		for(i=check_for_common;i<interim_count;i++){
+			//printf("i %d %d %d",i,interim_count,init_array_count);
+			for(j=interim_count;j<init_array_count;j++){
+				//printf("j %d",j);
+				if(init_array[i]==init_array[j]){
+					//printf("comm%d",init_array[i]);
+					common_array[common_array_count++] = init_array[i];
+				}
+			}
+		}
+		var_array_count = pop_var_array_stack();
+		//printf("returned var aray coun %d next count = %d \n", var_array_count,next_count);
+		init_array_count = pop_init_array_stack();
+		//printf("initarra %d",init_array_count);
+		init_var_used_count = pop_init_var_used_stack();
+		if(common_array_count>0){
+			for(i=0;i<common_array_count;i++){
+				init_array[init_array_count++] = common_array[i];
+			}
+		}
+		
+		//printf("\ninitarra %d",init_array_count);
+		/*push_var_array_stack(var_array_count);
+		push_init_array_stack(init_array_count);
+		push_init_var_used_stack(init_var_used_count);
+		*/
+		traverse_graph_for_init_var(graph_node->next[next_count++]);
+	}
+	
+		
+}
+
+int traverse_graph_for_mem_leaks(struct node *graph_node){
+	int i;
+	int type,next_count=0,interim_count=0,check_for_common=0,common_array[10],common_array_count=0;
+	type = graph_node->type;
 	if(graph_node->type==malloc_node){
 		int i;
 		allocation_node[allocation_count] = malloc(sizeof(struct malloc));
@@ -276,8 +368,13 @@ int traverse_graph(struct node *graph_node){
 		allocation_node[allocation_count]->points[allocation_node[allocation_count]->count++] = i;
 		allocation_count++;
 	}
+	
+	if(graph_node->type==if_node){
+		//push_mem_path_array(
+	}
+	
 	if(graph_node->type==rhs){
-		
+		//printf("in mem");
 		int valid = check_rhs_validity(graph_node);
 	}			
 		//	init_symtab(graph_node->symbol);
@@ -287,40 +384,71 @@ int traverse_graph(struct node *graph_node){
 					//printf("malloc here\n");
 				}*/
 				
-				check_lhs_validity(graph_node);
+				check_lhs_for_mem_leaks(graph_node);
 				
 	}
 	if(strcmp(graph_node->symbol,"free")==0){
-		remove_malloc_array(graph_node->next[0]);
-	}
+		int index,i,j,flag=0;
+		for(i=0;i<allocation_count;i++){
+			for(j=0;j<allocation_node[i]->count;j++){
+				if(strcmp((graph_node->next[0])->symbol,var_array[allocation_node[i]->points[j]])==0){
+					flag=1;
+					break;
+				}
+			}
+			if(flag==1)
+				break;
+		}
+		add_mem_freed_array(allocation_node[i]->index);
+	}		
 	
 	if((graph_node->next[0]==NULL)){
-		// return uninitialised variables
-		//printf("end of path %s\n",graph_node->symbol);
-		//print_init_array(graph_node);
-		//pop_scope();
+		print_mem_leaks(graph_node);
 		return 1;
 	}
+	
 	//recursive call to graph_node->next1
-	//printf("next0 %s\n",graph_node->symbol);
-	traverse_graph(graph_node->next[next_count++]);
+	//printf("next0 %s %d\n",graph_node->symbol,next_count);
+	traverse_graph_for_mem_leaks(graph_node->next[next_count++]);
 	//recursive call to graph_node->next1
 
-	while(graph_node->next[next_count]!=NULL){
+	while(graph_node->next[next_count+1]!=NULL){
 		int i;
 		//printf("next[%d] %s\n",next_count,graph_node->symbol);	
-		var_array_count = pop_var_array_stack();
-		//print("returned var aray coun %d next count = %d \n", var_array_count,next_count);
-		init_array_count = pop_init_array_stack();
-		init_var_used_count = pop_init_var_used_stack();
-		push_var_array_stack(var_array_count);
+		interim_count = mem_freed_array_count;
+		check_for_common = mem_path_array[mem_path_array_count-1];
+		//printf("%d %d", interim_count,check_for_common);
+		traverse_graph_for_mem_leaks(graph_node->next[next_count++]);
+	}
+	if(graph_node->next[next_count]!=NULL){
+		//printf("next[%d] %s\n",next_count,graph_node->symbol);	
+		int i,j;
+		for(i=check_for_common;i<interim_count;i++){
+			//printf("i %d %d %d",i,interim_count,init_array_count);
+			for(j=interim_count;j<mem_freed_array_count;j++){
+				//printf("j %d",j);
+				if(mem_freed_array[i]==mem_freed_array[j]){
+					//printf("comm%d",init_array[i]);
+					common_array[common_array_count++] = mem_freed_array[i];
+				}
+			}
+		}
+		mem_freed_array_count = pop_mem_path_array();
+		if(common_array_count>0){
+			for(i=0;i<common_array_count;i++){
+				//printf("%d", i);
+				mem_freed_array[mem_freed_array_count++] = common_array[i];
+			}
+		}
+		
+		//printf("\ninitarra %d",init_array_count);
+		/*push_var_array_stack(var_array_count);
 		push_init_array_stack(init_array_count);
 		push_init_var_used_stack(init_var_used_count);
-	
-		traverse_graph(graph_node->next[next_count++]);
+		*/
+		traverse_graph_for_mem_leaks(graph_node->next[next_count++]);
 	}
-	
-		
+			
 }
 	
 void var_array_add(struct node *graph_node){
@@ -370,46 +498,18 @@ int pop_init_var_used_stack(){
 
 void print_init_array(struct node* graph_node){
 		int i;
-		//fprintf(fp, "This is a string which is written to a file\n");
-		//fprintf(fp, "The string has words and keyword \n");
-		//printf("{\"array\":[");
-		for(i=0;i<var_array_count;i++){
-			//printf("|	|	|\n");
-			//printf("{\"line number:\": %d,",lineno);
-			//printf("{\"%d\":\"%s\"}",i, var_array[i]);
-			//printf("|	|	|\n");
-			//printf("_________________\n");
-			//printf("{ \"count\" : \"");
-			if(i!=var_array_count-1){
-				//printf(",");
-			}
-			
-		}
-		//printf("]}");
-		//fclose(fp);
-		//printf("init array:\n");
-		//printf("{\"init_array\":[");
-		/*for(i=0;i<init_array_count;i++){
-			//printf("|	|	|\n");
-			printf("{\"%d\":\"%s\"}",i, var_array[init_array[i]]);
-			//printf("|	|	|\n");
-			//printf("_________________\n");
-			if(i!=init_array_count-1){
-				printf(",");
-			}
-			
-		}
-		printf("]}");*/
 		//printf("%d",prev_line);
 		if(first_print==0){
-			printf("{");
+			printf("{a");
 		}	
+		printf("%d %d\n", graph_node->line,prev_line);
+				
 		if(graph_node->line==prev_line){
-				printf(",\"%s\"",var_array[init_var_used]);
+				printf(",b\"%s\"",var_array[init_var_used]);
 			}
 		else{
 				if(first_print!=0)
-					printf("],");
+					printf("],c");
 		//printf("\"uninitialized_variables%d\":[",first_print);
 		/*for(i=0;i<init_var_used_count;i++){
 			int j,flag=0;
@@ -419,15 +519,20 @@ void print_init_array(struct node* graph_node){
 			}
 		
 		}*/
-		printf("\"%d\":[\"%s\"", graph_node->line,var_array[init_var_used]);
+		printf("d\"%d\":[\"%s\"", graph_node->line,var_array[init_var_used]);
 		}
+		printf("\t fn%d %d", graph_node->line, final_line_count);
 		if(graph_node->line==final_line_count){
-			printf("]}");
+			printf("]}e");
 		}
 		prev_line = graph_node->line;
 		first_print++;
-		//printf("memory leaks:\n");
-		/*i=0;
+			
+}
+
+void print_mem_leaks(struct node* graph_node){
+		int i;
+		i=0;
 		for(i=0;i<allocation_count;i++){
 				int j;
 				for(j=0;j<allocation_node[i]->count;j++){
@@ -435,19 +540,51 @@ void print_init_array(struct node* graph_node){
 				}
 				printf("%d\n", allocation_count);
 			
-		}*/
+		}
+		//printf("freed\n");
+		for(i=0;i<mem_freed_array_count;i++){
+			printf("%s hello ",var_array[mem_freed_array[i]]);
+		}
 			
 }
+/*
+void add_mem_alloc_path_array(struct node* graph_node){
+	int i,j,k,index,flag=0;
+	for(i=var_array_count-1;i>=0;i--){
+		if(strcmp(var_array[i],graph_node->symbol)==0)
+			break;
+	}
+	for(j=0;j<allocation_count;j++){
+			//printf("j %d",j);
+			for(k=0;k<allocation_node[j]->count;k++){
+				//printf("K %d",k);
+				if(allocation_node[j]->points[k]==i){
+					//printf("found");
+					flag = 1;
+					break;
+				}
+			}
+			if(flag==1)
+				break;
+			
+	}
+	//printf("allocation_node[j]->count = %d",allocation_node[j]->count);
+	//if((allocation_node[j]->count)-1==0){
+		mem_path_array[mem_path_count++] = allocation_node[j]->points[k];
+		printf("%d in paht\n",allocation_node[j]->points[k]);
+		
+}
+*/
 
 void malloc_array_add(struct node* graph_node){
 	//printf("\nadding to malloc array %s\n",graph_node->symbol);
 	malloc_array[malloc_array_count++] = graph_node->symbol;
 }	
 
-void remove_malloc_array(struct node* graph_node){
+void remove_malloc_array(char* symbol){
 	int i,j,k,index,flag=0;
 	for(i=var_array_count-1;i>=0;i--){
-		if(strcmp(var_array[i],graph_node->symbol)==0)
+		if(strcmp(var_array[i],symbol)==0)
 			break;
 	}
 	for(j=0;j<allocation_count;j++){
@@ -475,7 +612,7 @@ void remove_malloc_array(struct node* graph_node){
 		allocation_count--;
 		
 	//}
-	/*else{//change
+	/*	else{//change
 		printf("SS");
 			for(i=k;i<allocation_node[j]->count;i++){
 				printf("entered");
@@ -484,7 +621,124 @@ void remove_malloc_array(struct node* graph_node){
 	}*/
 }
 
-void check_lhs_validity(struct node * graph_node){
+void check_lhs_for_init_var(struct node * graph_node){
+	int i,index,flag=0,j=0,repeat=0,valid;
+	int isAllocationNode=0;
+	if(var_array_count==0){
+		var_array_add(graph_node);	
+		index = 0;
+	}
+	//valid = check_rhs_validity(graph_node->next[0]);
+	//if(valid!=0){
+	j = var_array_count-1;
+				//printf("cnt: %d ", var_array_count);
+	for(i=j;i>=0;i--){
+					//printf("%d lhsfor %s %s \n",i,var_array[i],graph_node->symbol	);
+					if(strcmp(var_array[i],graph_node->symbol)==0){
+						flag = 1;
+						index = i;
+						//printf("%d",index);
+						break;
+					}
+				}
+				if(flag==0){
+						//printf("3 %d",var_array_count);
+						var_array_add(graph_node);
+						index = var_array_count-1;
+						/*init_array[init_array_count] = var_array_count-1;
+						init_array_count++;*/
+				
+				}
+				if(graph_node->next[0]){
+				//printf("type %d\n", (graph_node->next[0])->type);//problem
+				if((graph_node->next[0])->type==3){
+					struct node *temp;
+					int i,j,k,flag=0;
+					//printf("type 3!");
+					//printf("%d\n",index);
+					temp = graph_node->next[0];
+					for(k=var_array_count-1;k>=0;k--){
+						//printf("%s %s", var_array[k],temp->symbol);
+						if(strcmp(var_array[k],temp->symbol)==0){
+							//printf("%d",index);
+							break;
+						}
+					}
+					//printf("%d %d\n",k,index);
+					/*for(i=0;i<allocation_count;i++){
+						//printf("1");
+						for(j=0;j<allocation_node[i]->count;j++){
+							//printf("2 %d\n",allocation_node[i]->count);
+								if(k == allocation_node[i]->points[j]){ //
+									//printf("done");
+									allocation_node[i]->points[allocation_node[i]->count] = index;
+									allocation_node[i]->count++;
+									//printf("%d %d %d",index,allocation_node[i]->count,allocation_node[i]->points[allocation_node[i]->count-1]);
+									flag = 1;
+									isAllocationNode=1;
+									break;
+								}
+						}
+						if(flag==1)
+								break;
+					}*/
+				}
+				}
+				//printf("2 %d ",var_array_count);
+				for(i=0;i<init_array_count;i++){ //should it be backwards?
+							if(init_array[i] == index){
+							//repeat = 1;
+							//printf("repeat %d %d\n",init_array[i],index);
+							break;
+							}
+				}
+				if(repeat==0){	
+							//printf("not rep %d \n",index);
+							init_array[init_array_count] = index;
+							init_array_count++;
+						
+						}				
+				
+	//}
+}
+
+int check_rhs_validity(struct node* graph_node){
+	printf("%s",graph_node->symbol);
+	if(strcmp(graph_node->symbol,"malloc")!=0){
+					
+				int i,index=101,flag=0;
+				//printf("rhs \n");
+				for(i=var_array_count-1;i>=0;i--){
+					//printf("%d ",i);
+					//printf("%s %s\n",var_array[i], graph_node->symbol);
+					if(strcmp(var_array[i],graph_node->symbol)==0){
+						//printf("found %s %s \n",var_array[i],graph_node->symbol);
+						index = i;
+						break;
+					}
+				}
+				for(i=init_array_count-1;i>=0;i--){
+					//printf("%d %d ", i,index);
+					if(init_array[i]==index){
+						//printf("index: %d\n",index);
+						flag=1;
+						break;
+					}
+				}
+				if(flag==0){
+					//printf("index: %d\n",index);
+					//printf("error\n");
+					init_var_used = index;
+					printf("printing");
+					print_init_array(graph_node);
+					return 0;
+				}
+				}
+				return 1;
+}
+
+
+void check_lhs_for_mem_leaks(struct node * graph_node){
 	int i,index,flag=0,j=0,repeat=0,valid;
 	int isAllocationNode=0;
 	if(var_array_count==0){
@@ -547,7 +801,7 @@ void check_lhs_validity(struct node * graph_node){
 					}
 				}
 				}
-				if(isAllocationNode==0){
+				/*if(isAllocationNode==0){
 				//printf("2 %d ",var_array_count);
 				for(i=0;i<init_array_count;i++){ //should it be backwards?
 							if(init_array[i] == index){
@@ -563,43 +817,25 @@ void check_lhs_validity(struct node * graph_node){
 						
 						}				
 				}
-	//}
+	//}*/
 }
 
-int check_rhs_validity(struct node* graph_node){
-	if(strcmp(graph_node->symbol,"malloc")!=0){
-					
-				int i,index=101,flag=0;
-				//printf("rhs \n");
-				for(i=var_array_count-1;i>=0;i--){
-					//printf("%d ",i);
-					//printf("%s %s\n",var_array[i], graph_node->symbol);
-					if(strcmp(var_array[i],graph_node->symbol)==0){
-						//printf("found %s %s \n",var_array[i],graph_node->symbol);
-						index = i;
-						break;
-					}
-				}
-				for(i=init_array_count-1;i>=0;i--){
-					//printf("%d %d ", i,index);
-					if(init_array[i]==index){
-						//printf("index: %d\n",index);
-						flag=1;
-						break;
-					}
-				}
-				if(flag==0){
-					//printf("index: %d\n",index);
-					//printf("error\n");
-					init_var_used = index;
-					print_init_array(graph_node);
-					return 0;
-				}
-				}
-				return 1;
+void add_mem_freed_array(int index){
+	mem_freed_array[mem_freed_array_count++] = index;
+}
+
+int pop_mem_path_array(){
+	return mem_path_array[--mem_path_array_count];
 }
 
 
 //add case for c=a to malloc nodes - done
 //print at error statement in rhs validity not end of scope
 
+/*if(){
+	b=1;
+}
+else{
+	b=3;
+}
+error!*/
