@@ -5,6 +5,8 @@
 #define YYDEBUG 1
 extern char yytext[];
 extern int line_number;
+int ifFlag=0; 
+int flagCount=0;
 %}
 
 %union{
@@ -29,7 +31,7 @@ extern int line_number;
 %token CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 
 %type<text> declarator direct_declarator argument_expression_list
-%type<text> declaration_specifiers declaration_list external_declaration if_statement statement expression expression_statement declaration init_declarator primary_expression postfix_expression unary_expression assignment_expression conditional_expression initializer struct_declaration struct_declarator_list struct_declarator	
+%type<text> declaration_specifiers declaration_list external_declaration if_statement statement expression expression_statement declaration init_declarator primary_expression postfix_expression unary_expression assignment_expression conditional_expression initializer struct_declaration struct_declarator_list struct_declarator	relational_expression shift_expression
 %type<integer> storage_class_specifier
 
 %nonassoc LOWER_THAN_ELSE
@@ -39,7 +41,7 @@ extern int line_number;
 
 %%
 
-primary_expression: IDENTIFIER  {/*printf("primat %s",$1);/*/ }
+primary_expression: IDENTIFIER  {/*printf("primat %s",$1);/*/ if(ifFlag==1){ currentIfNode->symbol[currentIfNode->symbolCount++] = strdup($1);} }
 	| CONSTANT { $$=NULL;}
 	| STRING_LITERAL { $$=NULL; }
 	| '(' expression ')'
@@ -47,10 +49,10 @@ primary_expression: IDENTIFIER  {/*printf("primat %s",$1);/*/ }
 	;
 	
 postfix_expression
-	: primary_expression { /* printf("post1");/*/   }
-	| postfix_expression '[' expression ']'  {  	 }
-	| postfix_expression '(' ')'  {  	 }
-	| postfix_expression '(' argument_expression_list ')'  { /* printf("post22 %s",$1);/*/ if(strcmp($1,"free")==0){ createNode($1,other); createNode($3,other);	}}
+	: primary_expression {  printf("post1");   }
+	| postfix_expression '[' expression ']'  { printf("1here");  }
+	| postfix_expression '(' ')'  {  printf("2here");	 }
+	| postfix_expression '(' argument_expression_list ')'  {printf("3here"); /* printf("post22 %s",$1);/*/ if(strcmp($1,"free")==0){ createNode($1,other); createNode($3,other);	}}
 	| postfix_expression '.' IDENTIFIER  {  	 }
 	| postfix_expression PTR_OP IDENTIFIER  {  $$=$3;	/*createNode($3,lhs);*/ /*printf("11/%s",$$);/*/ }
 	| postfix_expression INC_OP  {  	 }
@@ -107,7 +109,7 @@ shift_expression
 relational_expression
 	: shift_expression {  	 }
 	| relational_expression '<' shift_expression {  	 }
-	| relational_expression '>' shift_expression {  	 }
+	| relational_expression '>' shift_expression { 	printf("S %s %s",$1,$3); }
 	| relational_expression LE_OP shift_expression {  	 }
 	| relational_expression GE_OP shift_expression
 		 {  	 }
@@ -149,7 +151,7 @@ conditional_expression
 	 {  	 }
 	;
 assignment_expression
-	: conditional_expression { /* printf("assignment_exp1 %s ",$1);/*/	 }
+	: conditional_expression {  printf("assignment_exp1 %s ",$1);	 }
 	| unary_expression assignment_operator assignment_expression
 	 {  /* printf("2");/*/createNode($1,lhs);/* printf("3");/*/if($3!=NULL){createNode($3,rhs);}/*init_symtab($1); /*printf("assiexp2 %s",$3);	/*/ }
 	;
@@ -409,7 +411,7 @@ expression_statement
 		 { /* printf("exp");/*/	 }
 	;
 if_statement
-	: IF '(' expression ')' { /*printf("if-expression-%s ", $3);/*/ createNode($3,if_node);/*printf("6 %s",currentNode->symbol);/*/ push(currentNode);}
+	: IF {createNode("if",if_node);ifFlag=1;currentIfNode = currentNode; currentIfNode->symbolCount=0;} '(' expression ')' { ifFlag=0; currentIfNode=NULL;/*printf("if-expression-%s ", $3);/*/ /*printf("6 %s",currentNode->symbol);/*/ push(currentNode);}
 	
 selection_statement
 	: if_statement statement { /*printf("if");/*/ currentNode = pop();/* printf("current node pop = %s",currentNode->symbol);/*/	}
@@ -448,7 +450,8 @@ translation_unit
 	| translation_unit external_declaration { }
 	;
 external_declaration
-	: function_definition {	/*printf("hello");/*/  int a = traverse_graph_for_init_var(startNode);int b = traverse_graph_for_mem_leaks(startNode);}
+	: function_definition {	/*printf("hello");/*/ FILE *fp; int a = traverse_graph_for_init_var(startNode);fp = fopen("c:\\pcs\\rohan\\back up\\return to pendrive\\xampp-win32-1.7.5-beta2-VC9\\xampp\\htdocs\\static\\init_var.json","a"); fprintf(fp,"}"); fclose(fp);
+		int b = traverse_graph_for_mem_leaks(startNode);}
 	| declaration { }
 
 	;

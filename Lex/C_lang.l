@@ -153,7 +153,7 @@ void count()
 		else
 			column++;
 			
-			
+	ECHO;
 
 }
 

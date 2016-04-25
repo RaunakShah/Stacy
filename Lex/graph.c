@@ -34,14 +34,18 @@ void createGraph(){
 void createNode(char *symbols, int type_of){
     struct node *newNode,*switchNode;
 	int i=0;
-	//printf("regular node");
+	printf("regular node");
 	////printf("%d", type);
 	newNode = (struct node*) malloc (sizeof(struct node));	
-	newNode->symbol = strdup(symbols);
+	newNode->symbol = malloc(sizeof(char)*10);
+	newNode->symbolCount=0;
+	newNode->symbol[newNode->symbolCount++] = strdup(symbols);
 	newNode->type = type_of;
 	newNode->line = line_number;
 	final_line_count = line_number;
-	//printf("%s",newNode->symbol);
+	if(newNode->symbol[0]!=NULL){
+		printf("%s\n",newNode->symbol[0]);
+	}
 	//newNode->next1 = NULL;
 	//newNode->next2 = NULL;
 	for(i=0;i<10;i++){
@@ -53,18 +57,18 @@ void createNode(char *symbols, int type_of){
 		startNode = newNode;
 	}
 	else
-	if((strcmp(newNode->symbol,"break")==0)){
+	if((strcmp(newNode->symbol[0],"break")==0)){
 		currentNode->next[0] = NULL;
 	}
 	
 	else{
 		
-		if((strcmp(newNode->symbol,"malloc")==0)){
+		if((strcmp(newNode->symbol[0],"malloc")==0)){
 			currentNode->type = 9;
 		}
-		if((strcmp(newNode->symbol,"case")==0)&&(currentNode->type!=switch_node)){
+		if((strcmp(newNode->symbol[0],"case")==0)&&(currentNode->type!=switch_node)){
 			//printf("case found\n");
-			if((strcmp(currentNode->symbol,"break")!=0)){
+			if((strcmp(currentNode->symbol[0],"break")!=0)){
 				//printf("break not found");
 				i=0;
 				/*while(currentNode->next[i]!=NULL){
@@ -109,7 +113,7 @@ void createNode(char *symbols, int type_of){
 	//if identifier
 	if(type_of==declaration){
 		////printf("symbol ::%s", symbols);
-		add_to_symtab(newNode->symbol);
+		add_to_symtab(newNode->symbol[0]);
 	}
 	//if doesnt exist in symtab
 	/*s[count].symbol = $$;
@@ -229,6 +233,9 @@ struct node* pop(){
 
 int traverse_graph_for_init_var(struct node *graph_node){
 	int i;
+	for(i=0;i<graph_node->symbolCount;i++){
+		printf("%s ",graph_node->symbol[i]);
+	}
 	int type,next_count=0,interim_count=0,check_for_common=0,common_array[10],common_array_count=0;
 	type = graph_node->type;
 	//printf("graph symb %s type %d var arr cnt%d\n",graph_node->symbol,graph_node->type,var_array_count);
@@ -364,7 +371,7 @@ int traverse_graph_for_mem_leaks(struct node *graph_node){
 		allocation_node[allocation_count]->line = graph_node->line;
 		allocation_node[allocation_count]->free = 0;
 		for(i=var_array_count-1;i>=0;i--){
-			if(strcmp(graph_node->symbol,var_array[i])==0)
+			if(strcmp(graph_node->symbol[0],var_array[i])==0)
 				break;
 		}
 		allocation_node[allocation_count]->points[allocation_node[allocation_count]->count++] = i;
@@ -389,11 +396,11 @@ int traverse_graph_for_mem_leaks(struct node *graph_node){
 				check_lhs_for_mem_leaks(graph_node);
 				
 	}
-	if(strcmp(graph_node->symbol,"free")==0){
+	if(strcmp(graph_node->symbol[0],"free")==0){
 		int index,i,j,flag=0;
 		for(i=0;i<allocation_count;i++){
 			for(j=0;j<allocation_node[i]->count;j++){
-				if(strcmp((graph_node->next[0])->symbol,var_array[allocation_node[i]->points[j]])==0){
+				if(strcmp((graph_node->next[0])->symbol[0],var_array[allocation_node[i]->points[j]])==0){
 					flag=1;
 					break;
 				}
@@ -457,7 +464,7 @@ void var_array_add(struct node *graph_node){
 	int i;
 	//printf("adding %s to var array\n",graph_node->symbol);
 	//var_array[var_array_count] = malloc(sizeof(char *));
-	var_array[var_array_count++]=graph_node->symbol;
+	var_array[var_array_count++]=graph_node->symbol[0];
 	//var_array_count++;
 	//print("cnt2: %d",var_array_count);
 	/*printf("var array\n");
@@ -501,7 +508,32 @@ int pop_init_var_used_stack(){
 void print_init_array(struct node* graph_node){
 		int i;
 		FILE *fp;
+		/*fp = fopen("c:\\pcs\\rohan\\back up\\return to pendrive\\xampp-win32-1.7.5-beta2-VC9\\xampp\\htdocs\\static\\init_var.json","w");
+		printf("34");	
 		//printf("%d",prev_line);
+		if(first_print==0){
+						printf("1");
+						uninitVarUsed = malloc(sizeof(char));
+						strcpy(uninitVarUsed,"{");
+						}
+					if(graph_node->line==prev_line){
+					//remove ]} and replace with ," "]}
+					}
+					else{
+					//if(first_print!=0), remove } and replace with ,
+					printf("#");
+					//cat "line":["var"]}
+					int lineAdded = graph_node->line;
+					char *varAdded=malloc(sizeof(char));
+					strcpy(varAdded, var_array[init_var_used]);
+					strcat(uninitVarUsed,"\"lineAdded\":[\"varAdded\"");
+					}
+					fprintf(fp,uninitVarUsed);
+					prev_line = graph_node->line;
+					first_print++;
+					fclose(fp);
+					//printf("%s\n",uninitVarUsed);
+				*/
 		if(first_print==0){
 			fp = fopen("c:\\pcs\\rohan\\back up\\return to pendrive\\xampp-win32-1.7.5-beta2-VC9\\xampp\\htdocs\\static\\init_var.json","w");
 			fprintf(fp,"{");
@@ -514,8 +546,8 @@ void print_init_array(struct node* graph_node){
 			}
 		else{
 				if(first_print!=0)
-					fprintf(fp,"],");
-		fprintf(fp,"\"%d\":[\"%s\"", graph_node->line,var_array[init_var_used]);
+					fprintf(fp,",");
+		fprintf(fp,"\"%d\":[\"%s\"]", graph_node->line,var_array[init_var_used]);
 		}
 		//printf("\t fn%d %d", graph_node->line, final_line_count);
 		if(graph_node->line==final_line_count){
@@ -524,7 +556,7 @@ void print_init_array(struct node* graph_node){
 		prev_line = graph_node->line;
 		first_print++;
 		fclose(fp);
-			
+		
 		
 			
 }
@@ -605,7 +637,7 @@ void add_mem_alloc_path_array(struct node* graph_node){
 
 void malloc_array_add(struct node* graph_node){
 	//printf("\nadding to malloc array %s\n",graph_node->symbol);
-	malloc_array[malloc_array_count++] = graph_node->symbol;
+	malloc_array[malloc_array_count++] = graph_node->symbol[0];
 }	
 
 void remove_malloc_array(char* symbol){
@@ -661,7 +693,7 @@ void check_lhs_for_init_var(struct node * graph_node){
 				//printf("cnt: %d ", var_array_count);
 	for(i=j;i>=0;i--){
 					//printf("%d lhsfor %s %s \n",i,var_array[i],graph_node->symbol	);
-					if(strcmp(var_array[i],graph_node->symbol)==0){
+					if(strcmp(var_array[i],graph_node->symbol[0])==0){
 						flag = 1;
 						index = i;
 						//printf("%d",index);
@@ -686,7 +718,7 @@ void check_lhs_for_init_var(struct node * graph_node){
 					temp = graph_node->next[0];
 					for(k=var_array_count-1;k>=0;k--){
 						//printf("%s %s", var_array[k],temp->symbol);
-						if(strcmp(var_array[k],temp->symbol)==0){
+						if(strcmp(var_array[k],temp->symbol[0])==0){
 							//printf("%d",index);
 							break;
 						}
@@ -731,14 +763,14 @@ void check_lhs_for_init_var(struct node * graph_node){
 
 int check_rhs_validity(struct node* graph_node){
 	//printf("%s",graph_node->symbol);
-	if(strcmp(graph_node->symbol,"malloc")!=0){
+	if(strcmp(graph_node->symbol[0],"malloc")!=0){
 					
 				int i,index=101,flag=0;
 				//printf("rhs \n");
 				for(i=var_array_count-1;i>=0;i--){
 					//printf("%d ",i);
 					//printf("%s %s\n",var_array[i], graph_node->symbol);
-					if(strcmp(var_array[i],graph_node->symbol)==0){
+					if(strcmp(var_array[i],graph_node->symbol[0])==0){
 						//printf("found %s %s \n",var_array[i],graph_node->symbol);
 						index = i;
 						break;
@@ -758,6 +790,28 @@ int check_rhs_validity(struct node* graph_node){
 					init_var_used = index;
 					//printf("printing");
 					print_init_array(graph_node);
+		
+					/*if(first_print==0)
+						strcpy(uninitVarUsed,"{");
+					
+					if(graph_node->line==prev_line){
+					//remove ]} and replace with ," "]}
+					}
+					else{
+					//if(first_print!=0), remove } and replace with ,
+			
+					//cat "line":["var"]}
+					int lineAdded = graph_node->line;
+					char *varAdded;
+					strcpy(varAdded, var_array[init_var_used]);
+					strcat(uninitVarUsed,"\"lineAdded\":[\"varAdded\"");
+					}
+					prev_line = graph_node->line;
+					first_print++;
+					//printf("%s\n",uninitVarUsed);
+					
+					*/
+					
 					return 0;
 				}
 				}
@@ -778,7 +832,7 @@ void check_lhs_for_mem_leaks(struct node * graph_node){
 				//printf("cnt: %d ", var_array_count);
 	for(i=j;i>=0;i--){
 					//printf("%d lhsfor %s %s \n",i,var_array[i],graph_node->symbol	);
-					if(strcmp(var_array[i],graph_node->symbol)==0){
+					if(strcmp(var_array[i],graph_node->symbol[0])==0){
 						flag = 1;
 						index = i;
 						//printf("%d",index);
@@ -803,7 +857,7 @@ void check_lhs_for_mem_leaks(struct node * graph_node){
 					temp = graph_node->next[0];
 					for(k=var_array_count-1;k>=0;k--){
 						//printf("%s %s", var_array[k],temp->symbol);
-						if(strcmp(var_array[k],temp->symbol)==0){
+						if(strcmp(var_array[k],temp->symbol[0])==0){
 							//printf("%d",index);
 							break;
 						}
@@ -869,3 +923,4 @@ error!*/
 
 
 // scanf should be taken as initialized
+// b=a c=b no error
