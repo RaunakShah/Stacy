@@ -38,10 +38,12 @@ void createNode(char *symbols, int type_of){
 	////printf("%d", type);
 	newNode = (struct node*) malloc (sizeof(struct node));	
 	newNode->symbol = malloc(sizeof(char)*10);
-	newNode->symbolCount=0;
+	newNode->symbolCount = 0;
 	newNode->symbol[newNode->symbolCount++] = strdup(symbols);
 	newNode->type = type_of;
 	newNode->line = line_number;
+	newNode->index = malloc(sizeof(char)*10);
+	newNode->indexCount = 0;
 	final_line_count = line_number;
 	if(newNode->symbol[0]!=NULL){
 		printf("%s\n",newNode->symbol[0]);
@@ -236,6 +238,10 @@ int traverse_graph_for_init_var(struct node *graph_node){
 	for(i=0;i<graph_node->symbolCount;i++){
 		printf("%s ",graph_node->symbol[i]);
 	}
+	for(i=0;i<graph_node->indexCount;i++){
+			printf("index%s \n\n\n",graph_node->index[i]);
+		}
+		
 	int type,next_count=0,interim_count=0,check_for_common=0,common_array[10],common_array_count=0;
 	type = graph_node->type;
 	//printf("graph symb %s type %d var arr cnt%d\n",graph_node->symbol,graph_node->type,var_array_count);
@@ -527,7 +533,7 @@ void print_init_array(struct node* graph_node){
 					char *varAdded=malloc(sizeof(char));
 					strcpy(varAdded, var_array[init_var_used]);
 					strcat(uninitVarUsed,"\"lineAdded\":[\"varAdded\"");
-					}
+				s	}
 					fprintf(fp,uninitVarUsed);
 					prev_line = graph_node->line;
 					first_print++;

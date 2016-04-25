@@ -7,6 +7,8 @@ extern char yytext[];
 extern int line_number;
 int ifFlag=0; 
 int flagCount=0;
+char *indexVar;
+int indexFlag=0;
 %}
 
 %union{
@@ -50,7 +52,7 @@ primary_expression: IDENTIFIER  {/*printf("primat %s",$1);/*/ if(ifFlag==1){ cur
 	
 postfix_expression
 	: primary_expression {  printf("post1");   }
-	| postfix_expression '[' expression ']'  { printf("1here");  }
+	| postfix_expression '[' expression ']'  { printf("1here %s",$3); indexVar = strdup($3); printf("%s", indexVar);  indexFlag = 1;}
 	| postfix_expression '(' ')'  {  printf("2here");	 }
 	| postfix_expression '(' argument_expression_list ')'  {printf("3here"); /* printf("post22 %s",$1);/*/ if(strcmp($1,"free")==0){ createNode($1,other); createNode($3,other);	}}
 	| postfix_expression '.' IDENTIFIER  {  	 }
@@ -153,7 +155,7 @@ conditional_expression
 assignment_expression
 	: conditional_expression {  printf("assignment_exp1 %s ",$1);	 }
 	| unary_expression assignment_operator assignment_expression
-	 {  /* printf("2");/*/createNode($1,lhs);/* printf("3");/*/if($3!=NULL){createNode($3,rhs);}/*init_symtab($1); /*printf("assiexp2 %s",$3);	/*/ }
+	 {   printf("2");createNode($1,lhs); if(indexFlag==1){ currentNode->index[currentNode->indexCount++] = indexVar; indexFlag=0;} if($3!=NULL){createNode($3,rhs);}/*init_symtab($1); /*printf("assiexp2 %s",$3);	/*/ }
 	;
 assignment_operator
 	: '=' {  	 }
@@ -198,7 +200,7 @@ init_declarator_list
 	| init_declarator_list ',' init_declarator { /*printf("init_Dec2");createNode($3,declaration);*/}
 	;
 init_declarator
-	: declarator {	/*printf("4");/*/createNode($1,declaration); /*$$=$1; printf("initdec1 ");/*/}
+	: declarator {	printf("here 4");createNode($1,declaration);  /*$$=$1; printf("initdec1 ");/*/}
 	| declarator '=' initializer
 	 {/* printf("lhsS %s",$1);printf("5");/*/createNode($1,lhs); if($3!=NULL){ /*printf(" rhs %s",$3);/*/createNode($3,rhs);}/*printf("=init %s",$3); /*rhs value*/	  }
 	;
@@ -292,7 +294,7 @@ declarator
 direct_declarator
 	: IDENTIFIER {  $$=$1; /* printf("1");/*/}
 	| '(' declarator ')' {  /*printf("2");/*/	 }
-	| direct_declarator '[' constant_expression ']' {/*printf("3");/*/  	 }
+	| direct_declarator '[' constant_expression ']' {printf("3"); 	 }
 	| direct_declarator '[' ']' {  	 /*printf("4");/*/}
 	| direct_declarator '(' parameter_type_list ')' {/*printf("5");/*/  $$ = $1;	 }
 	| direct_declarator '(' identifier_list ')' {  	/*printf("6"); /*/}
@@ -457,7 +459,7 @@ external_declaration
 	;
 function_definition
 	: declaration_specifiers declarator declaration_list {createGraph();/*printf("1.%s 2.%s 3.%s",$1,$2,$3);/*/} compound_statement {	}
-	| declaration_specifiers declarator {createGraph(); /*printf("%s",$2);/*/createNode($2,other);} compound_statement {	 }
+	| declaration_specifiers declarator {createGraph(); printf("here%s",$2);createNode($2,other);} compound_statement {	 }
 	| declarator declaration_list {createGraph();/*printf("@");/*/} compound_statement {		 }
 	| declarator{createGraph();} compound_statement {}
 	;
