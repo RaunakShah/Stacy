@@ -361,6 +361,8 @@ int traverse_graph_for_mem_leaks(struct node *graph_node){
 		allocation_node[allocation_count]->index = malloc_array_count++;
 		allocation_node[allocation_count]->points = malloc(sizeof(int)*10);
 		allocation_node[allocation_count]->count = 0;
+		allocation_node[allocation_count]->line = graph_node->line;
+		allocation_node[allocation_count]->free = 0;
 		for(i=var_array_count-1;i>=0;i--){
 			if(strcmp(graph_node->symbol,var_array[i])==0)
 				break;
@@ -373,10 +375,10 @@ int traverse_graph_for_mem_leaks(struct node *graph_node){
 		//push_mem_path_array(
 	}
 	
-	if(graph_node->type==rhs){
+	/*if(graph_node->type==rhs){
 		//printf("in mem");
 		int valid = check_rhs_validity(graph_node);
-	}			
+	}*/			
 		//	init_symtab(graph_node->symbol);
 	if(graph_node->type==lhs){  //needs altering
 				//printf("lhs\n");
@@ -498,54 +500,79 @@ int pop_init_var_used_stack(){
 
 void print_init_array(struct node* graph_node){
 		int i;
+		FILE *fp;
 		//printf("%d",prev_line);
 		if(first_print==0){
-			printf("{a");
+			fp = fopen("c:\\pcs\\rohan\\back up\\return to pendrive\\xampp-win32-1.7.5-beta2-VC9\\xampp\\htdocs\\static\\init_var.json","w");
+			fprintf(fp,"{");
+			fclose(fp);
 		}	
-		printf("%d %d\n", graph_node->line,prev_line);
-				
+		//printf("%d %d\n", graph_node->line,prev_line);
+		fp = fopen("c:\\pcs\\rohan\\back up\\return to pendrive\\xampp-win32-1.7.5-beta2-VC9\\xampp\\htdocs\\static\\init_var.json","a");
 		if(graph_node->line==prev_line){
-				printf(",b\"%s\"",var_array[init_var_used]);
+				fprintf(fp,",\"%s\"",var_array[init_var_used]);
 			}
 		else{
 				if(first_print!=0)
-					printf("],c");
-		//printf("\"uninitialized_variables%d\":[",first_print);
-		/*for(i=0;i<init_var_used_count;i++){
-			int j,flag=0;
-				printf("{\"%s\":\"%d\"}", var_array[init_var_used[i]],graph_node->line);	
-			if(i!=var_array_count-1){
-				printf(",");
-			}
-		
-		}*/
-		printf("d\"%d\":[\"%s\"", graph_node->line,var_array[init_var_used]);
+					fprintf(fp,"],");
+		fprintf(fp,"\"%d\":[\"%s\"", graph_node->line,var_array[init_var_used]);
 		}
-		printf("\t fn%d %d", graph_node->line, final_line_count);
+		//printf("\t fn%d %d", graph_node->line, final_line_count);
 		if(graph_node->line==final_line_count){
-			printf("]}e");
+			fprintf(fp,"]}");
 		}
 		prev_line = graph_node->line;
 		first_print++;
+		fclose(fp);
+			
+		
 			
 }
 
 void print_mem_leaks(struct node* graph_node){
 		int i;
+		FILE *fp;
 		i=0;
 		for(i=0;i<allocation_count;i++){
 				int j;
 				for(j=0;j<allocation_node[i]->count;j++){
-					printf("i:%d j:%d %d ",i,j,allocation_node[i]->points[j]);
+					//printf("i:%d j:%d %d ",i,j,allocation_node[i]->points[j]);
 				}
-				printf("%d\n", allocation_count);
+				//printf("%d\n", allocation_count);
 			
 		}
 		//printf("freed\n");
 		for(i=0;i<mem_freed_array_count;i++){
-			printf("%s hello ",var_array[mem_freed_array[i]]);
+			int j;
+			//printf("%d hello ",mem_freed_array[i]);
+			for(j=0;j<allocation_count;j++){
+				int k;
+				//for(k=0;k<allocation_node[j]->count;k++){
+					//if(strcmp(var_array[mem_freed_array[i]],var_array[allocation_node[j]->points[k]])==0){ //figure all_node->points mapping to var array
+						if(mem_freed_array[i]==allocation_node[j]->index){
+						//printf("freeing %s",var_array[allocation_node[j]->points[0]]);
+						allocation_node[j]->free = 1;
+						break;
+					}
+				//}
+			}
 		}
+		fp = fopen("c:\\pcs\\rohan\\back up\\return to pendrive\\xampp-win32-1.7.5-beta2-VC9\\xampp\\htdocs\\static\\mem_leaks.json","w");
+		fprintf(fp,"{");
+		fclose(fp);
+		for(i=0;i<allocation_count;i++){
+			fp = fopen("c:\\pcs\\rohan\\back up\\return to pendrive\\xampp-win32-1.7.5-beta2-VC9\\xampp\\htdocs\\static\\mem_leaks.json","a");
 			
+			if(allocation_node[i]->free==0){
+				if(i>0)
+					fprintf(fp,",");
+				fprintf(fp,"\"%d\":[\"%s\"]", allocation_node[i]->line, var_array[allocation_node[i]->points[i]]);
+			}
+			fclose(fp);
+		}
+			fp = fopen("c:\\pcs\\rohan\\back up\\return to pendrive\\xampp-win32-1.7.5-beta2-VC9\\xampp\\htdocs\\static\\mem_leaks.json","a");
+		fprintf(fp,"}");
+		fclose(fp);
 }
 /*
 void add_mem_alloc_path_array(struct node* graph_node){
@@ -703,7 +730,7 @@ void check_lhs_for_init_var(struct node * graph_node){
 }
 
 int check_rhs_validity(struct node* graph_node){
-	printf("%s",graph_node->symbol);
+	//printf("%s",graph_node->symbol);
 	if(strcmp(graph_node->symbol,"malloc")!=0){
 					
 				int i,index=101,flag=0;
@@ -729,7 +756,7 @@ int check_rhs_validity(struct node* graph_node){
 					//printf("index: %d\n",index);
 					//printf("error\n");
 					init_var_used = index;
-					printf("printing");
+					//printf("printing");
 					print_init_array(graph_node);
 					return 0;
 				}
@@ -839,3 +866,6 @@ else{
 	b=3;
 }
 error!*/
+
+
+// scanf should be taken as initialized

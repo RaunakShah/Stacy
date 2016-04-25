@@ -9,11 +9,13 @@ IS			(u|U|l|L)*
 #include <stdio.h>
 #include "y.tab.h"
 void count();
+extern int line_number;
 %}
 
 %%
 
 "/*"			{ comment(); }
+"\n"			{ line_number++;  }
 "auto"			{ count();   return(AUTO);}
 "break"			{ count();   return(BREAK);}
 "case"			{ count();    return(CASE); }
@@ -150,8 +152,9 @@ void count()
 			column += 8 - (column % 8);
 		else
 			column++;
+			
+			
 
-	ECHO;
 }
 
 char *strdup();

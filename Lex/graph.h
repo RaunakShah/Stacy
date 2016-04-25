@@ -10,6 +10,8 @@ struct malloc {
 	int index;
 	int *points;
 	int count;
+	int line;
+	int free;
 };
 
 struct symtab{

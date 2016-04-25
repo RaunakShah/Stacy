@@ -64,10 +64,10 @@ argument_expression_list
 	;
 unary_expression
 	: postfix_expression {  /*printf("unary1 %s",$1);/*/	/* $$=$1;*/ }
-	| INC_OP unary_expression {  	printf("unary2");/*/ }
-	| DEC_OP unary_expression {  	printf("unary3");/*/ }
-	| unary_operator cast_expression {  	printf("unary4");/*/}
-	| SIZEOF unary_expression {  	 printf("signment");/*/}
+	| INC_OP unary_expression {  	/*printf("unary2");/*/ }
+	| DEC_OP unary_expression {  	/*printf("unary3");/*/ }
+	| unary_operator cast_expression {  /*	printf("unary4");/*/}
+	| SIZEOF unary_expression {  	/* printf("signment");/*/}
 	| SIZEOF '(' type_name ')'
 	 {  	 }
 	;
