@@ -597,6 +597,7 @@ int traverse_graph_for_buffer_overflow(struct node *graph_node){
 			flag=0;
 			if(currentSafeArray){
 			for(j=0;j<currentSafeArray->count;j++){
+				printf("matching %s %s\n",graph_node->index[i],currentSafeArray->safe[j]);
 				if(strcmp(graph_node->index[i],currentSafeArray->safe[j])==0){
 					flag=1;
 					break;
@@ -629,17 +630,23 @@ int traverse_graph_for_buffer_overflow(struct node *graph_node){
 	traverse_graph_for_buffer_overflow(graph_node->next[next_count++]);
 	//recursive call to graph_node->next1
 
-	while(graph_node->next[next_count]!=NULL){
+	while(graph_node->next[next_count+1]!=NULL){
 		int i;
 		printf("safe variables: ");
 		for(i=0;i<currentSafeArray->count;i++){
 			//printf("%s ",currentSafeArray->safe[i]);
 		}
-		currentSafeArray = currentSafeArray->prevScope;
-		currentUnsafeArray = currentUnsafeArray->prevScope;
+		/*currentSafeArray = currentSafeArray->prevScope;
+		currentUnsafeArray = currentUnsafeArray->prevScope;*/
 		//free(currentSafeArray->nextScope);
 		//free(currentUnsafeArray->nextScope);
 		traverse_graph_for_buffer_overflow(graph_node->next[next_count++]);
+	}
+	if(graph_node->next[next_count]!=NULL){
+		currentSafeArray = currentSafeArray->prevScope;
+		currentUnsafeArray = currentUnsafeArray->prevScope;
+			traverse_graph_for_buffer_overflow(graph_node->next[next_count++]);
+
 	}
 	
 		
@@ -1104,8 +1111,7 @@ int pop_mem_path_array(){
 else{
 	b=3;
 }
-error!*/
-
+error! - done*/
 
 // scanf should be taken as initialized
 // b=a c=b no error
