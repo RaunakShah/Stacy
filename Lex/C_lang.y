@@ -52,7 +52,7 @@ primary_expression: IDENTIFIER  {/*printf("primat %s",$1);/*/ if(ifFlag==1){ cur
 	
 postfix_expression
 	: primary_expression {  printf("post1");   }
-	| postfix_expression '[' expression ']'  { printf("1here %s",$3); indexVar = strdup($3); printf("%s", indexVar);  indexFlag = 1;}
+	| postfix_expression '[' expression ']'  { printf("1here %s %d",$3,indexFlag); indexVar = strdup($3); printf("%s", indexVar);  indexFlag = 1;}
 	| postfix_expression '(' ')'  {  printf("2here");	 }
 	| postfix_expression '(' argument_expression_list ')'  {printf("3here"); /* printf("post22 %s",$1);/*/ if(strcmp($1,"free")==0){ createNode($1,other); createNode($3,other);	}}
 	| postfix_expression '.' IDENTIFIER  {  	 }
@@ -155,7 +155,7 @@ conditional_expression
 assignment_expression
 	: conditional_expression {  printf("assignment_exp1 %s ",$1);	 }
 	| unary_expression assignment_operator assignment_expression
-	 {   printf("2");createNode($1,lhs); if(indexFlag==1){ currentNode->index[currentNode->indexCount++] = indexVar; indexFlag=0;} if($3!=NULL){createNode($3,rhs);}/*init_symtab($1); /*printf("assiexp2 %s",$3);	/*/ }
+	 {   printf("2");printf("%s",$1);createNode($1,lhs); if((indexFlag==1)&&(indexVar!=NULL)){ printf("%s %d ",indexVar,currentNode->indexCount); currentNode->index[currentNode->indexCount]=indexVar; printf("indec%s\n",currentNode->index[currentNode->indexCount++]); indexFlag=0;} if($3!=NULL){createNode($3,rhs);}/*init_symtab($1); /*printf("assiexp2 %s",$3);	/*/ }
 	;
 assignment_operator
 	: '=' {  	 }
@@ -202,7 +202,7 @@ init_declarator_list
 init_declarator
 	: declarator {	printf("here 4");createNode($1,declaration);  /*$$=$1; printf("initdec1 ");/*/}
 	| declarator '=' initializer
-	 {/* printf("lhsS %s",$1);printf("5");/*/createNode($1,lhs); if($3!=NULL){ /*printf(" rhs %s",$3);/*/createNode($3,rhs);}/*printf("=init %s",$3); /*rhs value*/	  }
+	 { printf("lhsS %s",$1);printf("here 5");createNode($1,lhs); if($3!=NULL){ /*printf(" rhs %s",$3);/*/createNode($3,rhs);}/*printf("=init %s",$3); /*rhs value*/	  }
 	;
 storage_class_specifier
 	: EXTERN {  	 }
@@ -417,7 +417,7 @@ if_statement
 	
 selection_statement
 	: if_statement statement { /*printf("if");/*/ currentNode = pop();/* printf("current node pop = %s",currentNode->symbol);/*/	}
-	| if_statement statement ELSE {/*printf("current node pop = %s",currentNode->symbol);/*/ currentNode = pop(); /*createNode("else",other);/*/ push(currentNode);  } statement { currentNode = pop(); 	 }
+	| if_statement statement ELSE { createNode("else",ifelse_node);/*printf("current node pop = %s",currentNode->symbol);/*/ currentNode = pop(); /*createNode("else",other);/*/ push(currentNode);  } statement { currentNode = pop(); 	 }
 	| switch_statement statement {currentNode = pop(); }
 	;
 switch_statement
@@ -453,7 +453,7 @@ translation_unit
 	;
 external_declaration
 	: function_definition {	/*printf("hello");/*/ FILE *fp; int a = traverse_graph_for_init_var(startNode);fp = fopen("c:\\pcs\\rohan\\back up\\return to pendrive\\xampp-win32-1.7.5-beta2-VC9\\xampp\\htdocs\\static\\init_var.json","a"); fprintf(fp,"}"); fclose(fp);
-		int b = traverse_graph_for_mem_leaks(startNode);}
+		int b = traverse_graph_for_mem_leaks(startNode); int c = traverse_graph_for_buffer_overflow(startNode);}
 	| declaration { }
 
 	;
