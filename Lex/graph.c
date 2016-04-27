@@ -34,12 +34,12 @@ void createGraph(){
 void createNode(char *symbols, int type_of){
     struct node *newNode,*switchNode;
 	int i=0;
-	printf("regular node %s",symbols);
-	////printf("%d", type);
-	printf("1");
+	printf("regular node %s\n",symbols);
+	//printf("type of %d\n", type_of);
+	printf("1\n");
 	newNode = (struct node*) malloc (sizeof(struct node));	
-	printf("2");
-	newNode->symbol = malloc(sizeof(char)*10);
+	printf("2\n");
+	newNode->symbol = malloc(sizeof(char *)*10);
 	printf("3");
 	newNode->symbolCount = 0;
 	printf(" %d ",newNode->symbolCount);
@@ -96,8 +96,11 @@ void createNode(char *symbols, int type_of){
 				//printf("switchnode->next[%d]->symbol = %s",i,(switchNode->next[i])->symbol);
 		}
 	i=0;
+	printf("%d ihere ", i);
+	printf("%s",currentNode->symbol[0]);
 	while(currentNode->next[i]!=NULL)
 			i++;
+		printf("%d", i);
 		currentNode->next[i] = malloc(sizeof(struct node*));
 		currentNode->next[i] = newNode;
 	}	/*
@@ -112,7 +115,6 @@ void createNode(char *symbols, int type_of){
 	
 	////printf("%d %s %s", currentNode->symbol, currentNode->next1, currentNode->next2);
 	num_of_nodes++;
-
 	currentNode = newNode;
 	////printf("%s\n",(startNode->next1)->symbol);
 	////printf("%d %s\n	", num_of_nodes,currentNode->symbol);
@@ -249,6 +251,10 @@ int traverse_graph_for_init_var(struct node *graph_node){
 	int type,next_count=0,interim_count=0,check_for_common=0,common_array[10],common_array_count=0;
 	type = graph_node->type;
 	//printf("graph symb %s type %d var arr cnt%d\n",graph_node->symbol,graph_node->type,var_array_count);
+	while(graph_node->next[next_count++]!=NULL){
+		printf("nc%d", next_count);
+	}
+	next_count=0;
 	if(graph_node->type==switch_node){
 		push_var_array_stack(var_array_count);
 		push_init_array_stack(init_array_count);
@@ -482,7 +488,7 @@ int traverse_graph_for_buffer_overflow(struct node *graph_node){
 	int type,next_count=0,interim_count=0,check_for_common=0,common_array[10],common_array_count=0;
 	type = graph_node->type;
 	//printf("graph symb %s type %d var arr cnt%d\n",graph_node->symbol,graph_node->type,var_array_count);
-	if(graph_node->type==if_node){
+	if(graph_node->type==if_node||graph_node->type==ifelse_node){
 		int i;
 		struct safeArray *newSafeArray;
 		struct unsafeArray *newUnsafeArray;
@@ -490,8 +496,8 @@ int traverse_graph_for_buffer_overflow(struct node *graph_node){
 		newSafeArray = (struct safeArray*) malloc (sizeof(struct safeArray*));
 		newSafeArray->count = 0;
 		for(i=0;i<graph_node->symbolCount;i++){
-			newSafeArray->safe[newSafeArray->count] = malloc(sizeof(char));
-			strcpy(newSafeArray->safe[newSafeArray->count++],graph_node->symbol[i]);
+			newSafeArray->safe[newSafeArray->count++] = strdup(graph_node->symbol[i]);
+			//strcpy(newSafeArray->safe[newSafeArray->count++],graph_node->symbol[i]);
 			printf("NEW %s\n",graph_node->symbol[i]);
 		}
 		newSafeArray->nextScope = NULL;
@@ -509,7 +515,7 @@ int traverse_graph_for_buffer_overflow(struct node *graph_node){
 		if(currentUnsafeArray==NULL){
 			newUnsafeArray->prevScope = NULL;
 		}
-		else{
+		else{	
 			newUnsafeArray->prevScope = currentUnsafeArray;
 		}
 		currentUnsafeArray = newUnsafeArray;
@@ -559,8 +565,8 @@ int traverse_graph_for_buffer_overflow(struct node *graph_node){
 			
 		}
 		printf("here2");
-		currentUnsafeArray->unsafe[currentUnsafeArray->count] = malloc(sizeof(char));
-		strcpy(currentUnsafeArray->unsafe[currentUnsafeArray->count++],graph_node->symbol[0]);
+		currentUnsafeArray->unsafe[currentUnsafeArray->count++] = strdup(graph_node->symbol[0]);
+		//strcpy(currentUnsafeArray->unsafe[currentUnsafeArray->count++],graph_node->symbol[0]);
 	}
 	printf("after dec");
 	

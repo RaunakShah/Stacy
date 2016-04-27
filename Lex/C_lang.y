@@ -413,11 +413,14 @@ expression_statement
 		 { /* printf("exp");/*/	 }
 	;
 if_statement
-	: IF {createNode("if",if_node);ifFlag=1;currentIfNode = currentNode; currentIfNode->symbolCount=0;} '(' expression ')' { ifFlag=0; currentIfNode=NULL;/*printf("if-expression-%s ", $3);/*/ /*printf("6 %s",currentNode->symbol);/*/ push(currentNode);}
+	: IF {createNode("if",if_node);ifFlag=1;currentIfNode = currentNode; currentIfNode->symbolCount=0;} '(' expression ')' { ifFlag=0; /*printf("if-expression-%s ", $3);/*/ /*printf("6 %s",currentNode->symbol);/*/ push(currentNode);}
 	
 selection_statement
-	: if_statement statement { /*printf("if");/*/ currentNode = pop();/* printf("current node pop = %s",currentNode->symbol);/*/	}
-	| if_statement statement ELSE { createNode("else",ifelse_node);/*printf("current node pop = %s",currentNode->symbol);/*/ currentNode = pop(); /*createNode("else",other);/*/ push(currentNode);  } statement { currentNode = pop(); 	 }
+	: if_statement statement { printf("if"); printf("NOW YOS\n");currentNode = pop();/* printf("current node pop = %s",currentNode->symbol);/*/	}
+	| if_statement statement ELSE { int i;currentNode=pop(); push(currentNode); createNode("else",ifelse_node);printf("D"); for(i=0;i<currentIfNode->symbolCount;i++){
+	currentNode->symbol[currentNode->symbolCount++] = strdup(currentIfNode->symbol[i]);
+	} for(i=0;i<currentNode->symbolCount;i++){ printf("%s ",currentNode->symbol[i]);
+	} printf("HERE%s\n\n\n", currentIfNode->symbol[0]);/*printf("current node pop = %s",currentNode->symbol);/*/  /*createNode("else",other);/*/   } statement { currentNode = pop(); 	 }
 	| switch_statement statement {currentNode = pop(); }
 	;
 switch_statement
