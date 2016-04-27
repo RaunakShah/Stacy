@@ -34,11 +34,15 @@ void createGraph(){
 void createNode(char *symbols, int type_of){
     struct node *newNode,*switchNode;
 	int i=0;
-	printf("regular node");
+	printf("regular node %s",symbols);
 	////printf("%d", type);
+	printf("1");
 	newNode = (struct node*) malloc (sizeof(struct node));	
+	printf("2");
 	newNode->symbol = malloc(sizeof(char)*10);
+	printf("3");
 	newNode->symbolCount = 0;
+	printf(" %d ",newNode->symbolCount);
 	newNode->symbol[newNode->symbolCount++] = strdup(symbols);
 	newNode->type = type_of;
 	newNode->line = line_number;
@@ -325,7 +329,7 @@ int traverse_graph_for_init_var(struct node *graph_node){
 		int i;
 		//printf("next[%d] %s\n",next_count,graph_node->symbol);	
 		interim_count = init_array_count;
-		check_for_common = init_array_stack[init_array_stack_count-1];
+		check_for_common = init_array_stack[init_array_stack_count-1]; // does this work for switch?
 		//printf("%d %d", interim_count,check_for_common);
 		traverse_graph_for_init_var(graph_node->next[next_count++]);
 	}
@@ -384,7 +388,7 @@ int traverse_graph_for_mem_leaks(struct node *graph_node){
 		allocation_count++;
 	}
 	
-	if(graph_node->type==if_node){
+	if(graph_node->type==if_node){ //still need to work on this!!
 		//push_mem_path_array(
 	}
 	
@@ -465,7 +469,182 @@ int traverse_graph_for_mem_leaks(struct node *graph_node){
 	}
 			
 }
+
+int traverse_graph_for_buffer_overflow(struct node *graph_node){
+	int i;
+	for(i=0;i<graph_node->symbolCount;i++){
+		printf("\nsymb%s ",graph_node->symbol[i]);
+	}
+	for(i=0;i<graph_node->indexCount;i++){
+			printf("%dindex%s \n\n\n",i,graph_node->index[i]);
+		}
+	printf("before");
+	int type,next_count=0,interim_count=0,check_for_common=0,common_array[10],common_array_count=0;
+	type = graph_node->type;
+	//printf("graph symb %s type %d var arr cnt%d\n",graph_node->symbol,graph_node->type,var_array_count);
+	if(graph_node->type==if_node){
+		int i;
+		struct safeArray *newSafeArray;
+		struct unsafeArray *newUnsafeArray;
+		
+		newSafeArray = (struct safeArray*) malloc (sizeof(struct safeArray*));
+		newSafeArray->count = 0;
+		for(i=0;i<graph_node->symbolCount;i++){
+			newSafeArray->safe[newSafeArray->count] = malloc(sizeof(char));
+			strcpy(newSafeArray->safe[newSafeArray->count++],graph_node->symbol[i]);
+			printf("NEW %s\n",graph_node->symbol[i]);
+		}
+		newSafeArray->nextScope = NULL;
+		if(currentSafeArray==NULL){
+			newSafeArray->prevScope = NULL;
+		}
+		else{
+			newSafeArray->prevScope = currentSafeArray;
+		}
+		currentSafeArray = newSafeArray;
+		
+		newUnsafeArray = (struct unsafeArray*) malloc (sizeof(struct unsafeArray*));
+		newUnsafeArray->nextScope = NULL;
+		newUnsafeArray->count = 0;
+		if(currentUnsafeArray==NULL){
+			newUnsafeArray->prevScope = NULL;
+		}
+		else{
+			newUnsafeArray->prevScope = currentUnsafeArray;
+		}
+		currentUnsafeArray = newUnsafeArray;
+		
 	
+	}
+	printf("after");
+	/*if(graph_node->type==switch_node){
+		push_var_array_stack(var_array_count);
+		push_init_array_stack(init_array_count);
+		push_init_var_used_stack(init_var_used_count);
+
+	}
+	if(graph_node->type==for_node){
+		push_var_array_stack(var_array_count);
+		push_init_array_stack(init_array_count);
+		push_init_var_used_stack(init_var_used_count);
+	}
+	if(graph_node->type==while_node){
+		push_var_array_stack(var_array_count);
+		push_init_array_stack(init_array_count);
+		push_init_var_used_stack(init_var_used_count);
+	}
+	if(graph_node->type==function_parameter){
+		var_array_add(graph_node);
+		init_array[init_array_count] = var_array_count-1;
+		init_array_count++;
+						
+	}
+	*/
+	printf("before dec");
+	if(graph_node->type==declaration){
+		printf("in dec %s",graph_node->symbol[0]);
+		if(currentUnsafeArray==NULL){
+			struct unsafeArray *newUnsafeArray;
+			printf("here");
+			newUnsafeArray = (struct unsafeArray*) malloc (sizeof(struct unsafeArray*));
+			printf("here1");
+			newUnsafeArray->nextScope = NULL;
+			printf("here2");
+			newUnsafeArray->count = 0;
+			printf("here3");
+			newUnsafeArray->prevScope = NULL;
+			printf("here4");
+			currentUnsafeArray = newUnsafeArray;
+		printf("here5");
+			
+		}
+		printf("here2");
+		currentUnsafeArray->unsafe[currentUnsafeArray->count] = malloc(sizeof(char));
+		strcpy(currentUnsafeArray->unsafe[currentUnsafeArray->count++],graph_node->symbol[0]);
+	}
+	printf("after dec");
+	
+	if(graph_node->type==lhs){  //does not appreciate local variable of same name 
+			int i,flag=0;
+			printf("in lhs");
+			if(currentSafeArray){
+				printf("in current safe array%d\n ",currentSafeArray->count);
+			for(i=0;i<currentSafeArray->count;i++){
+				printf("%s %s\n",currentSafeArray->safe[i],graph_node->symbol[0]);
+				if(strcmp(currentSafeArray->safe[i],graph_node->symbol[0])==0){
+					printf("uh oh %d %s",currentUnsafeArray->count,currentSafeArray->safe[i]);
+					currentUnsafeArray->unsafe[currentUnsafeArray->count] = malloc(sizeof(char));
+					strcpy(currentUnsafeArray->unsafe[currentUnsafeArray->count++],currentSafeArray->safe[i]);
+					printf("oh");
+					flag=1;
+					break;
+				}
+			}
+			if(flag==1){
+				int j;
+				for(j=i;j<currentSafeArray->count-1;j++){
+					currentSafeArray->safe[j] = currentSafeArray->safe[j+1]; 
+				}
+				currentSafeArray->count--;
+			}
+			}
+				
+	}
+	if(graph_node->indexCount>0){
+		int i,j,flag=0;
+		printf(" in index count %d",graph_node->indexCount);
+		for(i=0;i<graph_node->indexCount;i++){
+			flag=0;
+			if(currentSafeArray){
+			for(j=0;j<currentSafeArray->count;j++){
+				if(strcmp(graph_node->index[i],currentSafeArray->safe[j])==0){
+					flag=1;
+					break;
+				}			
+			}
+			}
+		}
+		if(flag==0){
+			printf("potential buffer overflow line: %d\n",graph_node->line);
+		}
+	}
+	/*if(graph_node->type==rhs){
+		
+		int valid = check_rhs_validity(graph_node);
+	}			
+		//	init_symtab(graph_node->symbol);
+	*/
+	/*if(strcmp(graph_node->symbol,"free")==0){
+		remove_malloc_array(graph_node->next[0]);
+	}*/
+	printf("herewhar");
+	if((graph_node->next[0]==NULL)){
+		
+		printf("here2");return 1;
+	}
+	//recursive call to graph_node->next1
+	//printf("next0 %s %d\n",graph_node->symbol,next_count);
+	
+	printf("here3");
+	traverse_graph_for_buffer_overflow(graph_node->next[next_count++]);
+	//recursive call to graph_node->next1
+
+	while(graph_node->next[next_count]!=NULL){
+		int i;
+		printf("safe variables: ");
+		for(i=0;i<currentSafeArray->count;i++){
+			//printf("%s ",currentSafeArray->safe[i]);
+		}
+		currentSafeArray = currentSafeArray->prevScope;
+		currentUnsafeArray = currentUnsafeArray->prevScope;
+		//free(currentSafeArray->nextScope);
+		//free(currentUnsafeArray->nextScope);
+		traverse_graph_for_buffer_overflow(graph_node->next[next_count++]);
+	}
+	
+		
+}
+
 void var_array_add(struct node *graph_node){
 	int i;
 	//printf("adding %s to var array\n",graph_node->symbol);
