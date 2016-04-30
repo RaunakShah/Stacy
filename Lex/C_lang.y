@@ -5,7 +5,7 @@
 #define YYDEBUG 1
 extern char yytext[];
 extern int line_number;
-int ifFlag=0; 
+int selectionFlag=0; 
 int flagCount=0;
 char *indexVar;
 int indexFlag=0;
@@ -43,7 +43,7 @@ int indexFlag=0;
 
 %%
 
-primary_expression: IDENTIFIER  {/*printf("primat %s",$1);/*/ if(ifFlag==1){ currentIfNode->symbol[currentIfNode->symbolCount++] = strdup($1);} }
+primary_expression: IDENTIFIER  {/*printf("primat %s",$1);/*/ if(selectionFlag==1){ currentSelectionNode->symbol[currentSelectionNode->symbolCount++] = strdup($1);} }
 	| CONSTANT { $$=NULL;}
 	| STRING_LITERAL { $$=NULL; }
 	| '(' expression ')'
@@ -382,8 +382,14 @@ statement
 
 labeled_statement
 	: IDENTIFIER ':' statement {  	 }
-	| CASE {createNode("case",other);}constant_expression ':' statement {  	 }
-	| DEFAULT ':' statement
+	| CASE { int i;currentNode=pop(); push(currentNode); createNode("case",ifelse_node);printf("D"); for(i=0;i<currentSelectionNode->symbolCount;i++){
+	currentNode->symbol[currentNode->symbolCount++] = strdup(currentSelectionNode->symbol[i]);
+	} for(i=0;i<currentNode->symbolCount;i++){ printf("%s ",currentNode->symbol[i]);
+	} printf("HERE%s\n\n\n", currentSelectionNode->symbol[0]);/*printf("current node pop = %s",currentNode->symbol);/*/  /*createNode("else",other);/*/   }constant_expression ':' statement {  	 }
+	| DEFAULT { int i;currentNode=pop(); push(currentNode); createNode("default",ifelse_node);printf("D"); for(i=0;i<currentSelectionNode->symbolCount;i++){
+	currentNode->symbol[currentNode->symbolCount++] = strdup(currentSelectionNode->symbol[i]);
+	} for(i=0;i<currentNode->symbolCount;i++){ printf("%s ",currentNode->symbol[i]);
+	} printf("HERE%s\n\n\n", currentSelectionNode->symbol[0]);/*printf("current node pop = %s",currentNode->symbol);/*/  /*createNode("else",other);/*/  }':' statement
 		 {  	 }
 	;
 	
@@ -413,27 +419,27 @@ expression_statement
 		 { /* printf("exp");/*/	 }
 	;
 if_statement
-	: IF {createNode("if",if_node);ifFlag=1;currentIfNode = currentNode; currentIfNode->symbolCount=0;} '(' expression ')' { ifFlag=0; /*printf("if-expression-%s ", $3);/*/ /*printf("6 %s",currentNode->symbol);/*/ push(currentNode);}
+	: IF {createNode("if",if_node);selectionFlag=1;currentSelectionNode = currentNode; currentSelectionNode->symbolCount=0;} '(' expression ')' { selectionFlag=0; /*printf("if-expression-%s ", $3);/*/ /*printf("6 %s",currentNode->symbol);/*/ push(currentNode);}
 	
 selection_statement
 	: if_statement statement { printf("if"); printf("NOW YOS\n");currentNode = pop();/* printf("current node pop = %s",currentNode->symbol);/*/	}
-	| if_statement statement ELSE { int i;currentNode=pop(); push(currentNode); createNode("else",ifelse_node);printf("D"); for(i=0;i<currentIfNode->symbolCount;i++){
-	currentNode->symbol[currentNode->symbolCount++] = strdup(currentIfNode->symbol[i]);
+	| if_statement statement ELSE { int i;currentNode=pop(); push(currentNode); createNode("else",ifelse_node);printf("D"); for(i=0;i<currentSelectionNode->symbolCount;i++){
+	currentNode->symbol[currentNode->symbolCount++] = strdup(currentSelectionNode->symbol[i]);
 	} for(i=0;i<currentNode->symbolCount;i++){ printf("%s ",currentNode->symbol[i]);
-	} printf("HERE%s\n\n\n", currentIfNode->symbol[0]);/*printf("current node pop = %s",currentNode->symbol);/*/  /*createNode("else",other);/*/   } statement { currentNode = pop(); 	 }
+	} printf("HERE%s\n\n\n", currentSelectionNode->symbol[0]);/*printf("current node pop = %s",currentNode->symbol);/*/  /*createNode("else",other);/*/   } statement { currentNode = pop(); 	 }
 	| switch_statement statement {currentNode = pop(); }
 	;
 switch_statement
-	: SWITCH '(' expression ')' { createNode($3,switch_node);push(currentNode);}
+	: SWITCH {createNode("switch",switch_node);selectionFlag=1;currentSelectionNode = currentNode; currentSelectionNode->symbolCount=0;}  '(' expression ')' { selectionFlag=0;  push(currentNode);}
 	;
 for_statement
 	: FOR '(' expression_statement expression_statement ')' { }
 	;
 for_statement_extended
-	: FOR '(' expression_statement expression_statement expression ')' { createNode($3,for_node); push(currentNode);/*printf("%s %s %s",$3,$4,$5);*/ }
+	: FOR '(' expression_statement expression_statement expression ')' { printf("\nFOR %s %s %s",$3,$4,$5);createNode($3,for_node); push(currentNode);}
 	;
 while_statement
-	: WHILE '(' expression ')' { createNode($3,while_node); push(currentNode);}
+	: WHILE {createNode("while",while_node); selectionFlag=1;currentSelectionNode = currentNode; currentSelectionNode->symbolCount=0;}'(' expression ')' { selectionFlag=0; push(currentNode);}
 	;
 iteration_statement
 	: while_statement statement {  currentNode = pop();	 }
@@ -457,7 +463,7 @@ translation_unit
 external_declaration
 	: function_definition {	/*printf("hello");/*/ FILE *fp; int a = traverse_graph_for_init_var(startNode);fp = fopen("c:\\pcs\\rohan\\back up\\return to pendrive\\xampp-win32-1.7.5-beta2-VC9\\xampp\\htdocs\\static\\init_var.json","a"); fprintf(fp,"}"); fclose(fp);
 		int b = traverse_graph_for_mem_leaks(startNode); int c = traverse_graph_for_buffer_overflow(startNode);}
-	| declaration { }
+	| declaration {  }
 
 	;
 function_definition

@@ -13,7 +13,7 @@ extern int line_number;
 %}
 
 %%
-
+"#"				{ head();}
 "/*"			{ comment(); }
 "\n"			{ line_number++;  }
 "auto"			{ count();   return(AUTO);}
@@ -119,7 +119,11 @@ int yywrap()
 	return(1);
 }
 
-
+head(){
+	char c;
+	while((c=input())!='>')
+		putchar(c);
+		}
 comment()
 {
 	char c, c1;

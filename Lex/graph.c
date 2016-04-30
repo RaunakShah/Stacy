@@ -72,7 +72,7 @@ void createNode(char *symbols, int type_of){
 		if((strcmp(newNode->symbol[0],"malloc")==0)){
 			currentNode->type = 9;
 		}
-		if((strcmp(newNode->symbol[0],"case")==0)&&(currentNode->type!=switch_node)){
+		if(((strcmp(newNode->symbol[0],"case")==0)||(strcmp(newNode->symbol[0],"default")==0))&&(currentNode->type!=switch_node)){
 			//printf("case found\n");
 			if((strcmp(currentNode->symbol[0],"break")!=0)){
 				//printf("break not found");
@@ -252,7 +252,7 @@ int traverse_graph_for_init_var(struct node *graph_node){
 	type = graph_node->type;
 	//printf("graph symb %s type %d var arr cnt%d\n",graph_node->symbol,graph_node->type,var_array_count);
 	while(graph_node->next[next_count++]!=NULL){
-		printf("nc%d", next_count);
+		printf("nc%d\n", next_count);
 	}
 	next_count=0;
 	if(graph_node->type==switch_node){
@@ -472,7 +472,7 @@ int traverse_graph_for_mem_leaks(struct node *graph_node){
 		push_init_var_used_stack(init_var_used_count);
 		*/
 		traverse_graph_for_mem_leaks(graph_node->next[next_count++]);
-	}
+	}	
 			
 }
 
@@ -488,12 +488,12 @@ int traverse_graph_for_buffer_overflow(struct node *graph_node){
 	int type,next_count=0,interim_count=0,check_for_common=0,common_array[10],common_array_count=0;
 	type = graph_node->type;
 	//printf("graph symb %s type %d var arr cnt%d\n",graph_node->symbol,graph_node->type,var_array_count);
-	if(graph_node->type==if_node||graph_node->type==ifelse_node){
+	if(graph_node->type==if_node||graph_node->type==ifelse_node||graph_node->type==while_node||graph_node->type==switch_node){
 		int i;
 		struct safeArray *newSafeArray;
 		struct unsafeArray *newUnsafeArray;
 		
-		newSafeArray = (struct safeArray*) malloc (sizeof(struct safeArray*));
+		newSafeArray = (struct safeArray*) malloc (sizeof(struct safeArray));
 		newSafeArray->count = 0;
 		for(i=0;i<graph_node->symbolCount;i++){
 			newSafeArray->safe[newSafeArray->count++] = strdup(graph_node->symbol[i]);
@@ -501,15 +501,19 @@ int traverse_graph_for_buffer_overflow(struct node *graph_node){
 			printf("NEW %s\n",graph_node->symbol[i]);
 		}
 		newSafeArray->nextScope = NULL;
+		printf("f");
 		if(currentSafeArray==NULL){
+			printf("f");
 			newSafeArray->prevScope = NULL;
 		}
 		else{
+			printf("f");
 			newSafeArray->prevScope = currentSafeArray;
 		}
 		currentSafeArray = newSafeArray;
-		
-		newUnsafeArray = (struct unsafeArray*) malloc (sizeof(struct unsafeArray*));
+		printf("f2");
+		newUnsafeArray = (struct unsafeArray*) malloc (sizeof(struct unsafeArray));
+		printf("f");
 		newUnsafeArray->nextScope = NULL;
 		newUnsafeArray->count = 0;
 		if(currentUnsafeArray==NULL){
@@ -525,7 +529,7 @@ int traverse_graph_for_buffer_overflow(struct node *graph_node){
 	printf("after");
 	/*if(graph_node->type==switch_node){
 		push_var_array_stack(var_array_count);
-		push_init_array_stack(init_array_count);
+		push_ix	x	nit_array_stack(init_array_count);
 		push_init_var_used_stack(init_var_used_count);
 
 	}
@@ -609,10 +613,11 @@ int traverse_graph_for_buffer_overflow(struct node *graph_node){
 					break;
 				}			
 			}
+			if(flag==0){
+				printf("potential buffer overflow line: %d\n",graph_node->line);
+				break;
+				}
 			}
-		}
-		if(flag==0){
-			printf("potential buffer overflow line: %d\n",graph_node->line);
 		}
 	}
 	/*if(graph_node->type==rhs){
@@ -651,7 +656,7 @@ int traverse_graph_for_buffer_overflow(struct node *graph_node){
 	if(graph_node->next[next_count]!=NULL){
 		currentSafeArray = currentSafeArray->prevScope;
 		currentUnsafeArray = currentUnsafeArray->prevScope;
-			traverse_graph_for_buffer_overflow(graph_node->next[next_count++]);
+		traverse_graph_for_buffer_overflow(graph_node->next[next_count++]);
 
 	}
 	
@@ -1121,3 +1126,5 @@ error! - done*/
 
 // scanf should be taken as initialized
 // b=a c=b no error
+//work on if related to mem leaks 
+//work on diff selection statements for all error cases - work on for and switch
