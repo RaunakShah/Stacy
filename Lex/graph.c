@@ -21,6 +21,7 @@ int first_print=0;
 int prev_line = 0;
 int mem_path_array_count=0;
 int mem_freed_array_count=0;
+int first_buff_print=0;
 
 void createGraph(){
 	s = malloc (sizeof(struct symtab *)*10);
@@ -35,14 +36,9 @@ void createNode(char *symbols, int type_of){
     struct node *newNode,*switchNode;
 	int i=0;
 	printf("\nregular node %s\n",symbols);
-	//printf("type of %d\n", type_of);
-	//printf("1\n");
 	newNode = (struct node*) malloc (sizeof(struct node));	
-	//printf("2\n");
 	newNode->symbol = malloc(sizeof(char *)*10);
-	//printf("3");
 	newNode->symbolCount = 0;
-	//printf(" %d ",newNode->symbolCount);
 	newNode->symbol[newNode->symbolCount++] = strdup(symbols);
 	newNode->type = type_of;
 	newNode->line = line_number;
@@ -52,13 +48,10 @@ void createNode(char *symbols, int type_of){
 	if(newNode->symbol[0]!=NULL){
 		printf("%s\n",newNode->symbol[0]);
 	}
-	//newNode->next1 = NULL;
-	//newNode->next2 = NULL;
 	for(i=0;i<10;i++){
 		newNode->next[i] = NULL;
 	}
 	i=0;
-	//currentNode = newNode;
 	if(startNode == NULL){
 		startNode = newNode;
 	}
@@ -382,12 +375,12 @@ int traverse_graph_for_mem_leaks(struct node *graph_node){
 		allocation_count++;
 	}
 	
-	if(graph_node->type==if_node){ //still need to work on this!!
+	if(graph_node->type==if_node||graph_node->type==switch_node){ //still need to work on this!!
 		//push_mem_path_array(
 		printf("pushing index %d\n",mem_freed_array_count);
 		push_mem_path_array(mem_freed_array_count);
 	}
-	
+	printf("! %s",graph_node->symbol[0]);
 	/*if(graph_node->type==rhs){
 		//printf("in mem");
 		int valid = check_rhs_validity(graph_node);
@@ -404,19 +397,22 @@ int traverse_graph_for_mem_leaks(struct node *graph_node){
 	}
 	if(strcmp(graph_node->symbol[0],"free")==0){
 		int index,i,j,flag=0;
+		printf("1-");
 		for(i=0;i<allocation_count;i++){
+			printf("1#");
 			for(j=0;j<allocation_node[i]->count;j++){
-				if(strcmp((graph_node->next[0])->symbol[0],var_array[allocation_node[i]->points[j]])==0){
+				printf("\n %s %s\n",graph_node->next[0]->symbol[0],var_array[allocation_node[i]->points[j]]);if(strcmp((graph_node->next[0])->symbol[0],var_array[allocation_node[i]->points[j]])==0){
 					flag=1;
 					printf("free %s\n",(graph_node->next[0])->symbol[0]);
 					break;
 				}
 			}
 			if(flag==1)
+				printf("1break");
 				break;
 		}
 		printf("adding to mem freed array %d\n",allocation_node[i]->index);
-		add_mem_freed_array(allocation_node[i]->index);
+		printf("12");add_mem_freed_array(allocation_node[i]->index);
 	}		
 	
 	if((graph_node->next[0]==NULL)){
@@ -593,6 +589,13 @@ int traverse_graph_for_buffer_overflow(struct node *graph_node){
 			printf("%d\n", flag);
 			}
 			if(flag==0){
+				FILE *fp;
+				fp = fopen("c:\\pcs\\rohan\\back up\\return to pendrive\\xampp-win32-1.7.5-beta2-VC9\\xampp\\htdocs\\static\\buff.json","a");
+				if(first_buff_print!=0)
+					fprintf(fp,",");
+				fprintf(fp,"\"%d\":[\"%s\"]", graph_node->line,graph_node->index[i]);
+				fclose(fp);
+				first_buff_print++;
 				printf("potential buffer overflow line: %d\n",graph_node->line);
 				break;
 				}
@@ -681,51 +684,28 @@ int pop_init_var_used_stack(){
 void print_init_array(struct node* graph_node){
 		int i;
 		FILE *fp;
-		/*fp = fopen("c:\\pcs\\rohan\\back up\\return to pendrive\\xampp-win32-1.7.5-beta2-VC9\\xampp\\htdocs\\static\\init_var.json","w");
-		printf("34");	
-		//printf("%d",prev_line);
-		if(first_print==0){
-						printf("1");
-						uninitVarUsed = malloc(sizeof(char));
-						strcpy(uninitVarUsed,"{");
-						}
-					if(graph_node->line==prev_line){
-					//remove ]} and replace with ," "]}
-					}
-					else{
-					//if(first_print!=0), remove } and replace with ,
-					printf("#");
-					//cat "line":["var"]}
-					int lineAdded = graph_node->line;
-					char *varAdded=malloc(sizeof(char));
-					strcpy(varAdded, var_array[init_var_used]);
-					strcat(uninitVarUsed,"\"lineAdded\":[\"varAdded\"");
-				s	}
-					fprintf(fp,uninitVarUsed);
-					prev_line = graph_node->line;
-					first_print++;
-					fclose(fp);
-					//printf("%s\n",uninitVarUsed);
-				*/
-		if(first_print==0){
+		/*if(first_print==0){
 			fp = fopen("c:\\pcs\\rohan\\back up\\return to pendrive\\xampp-win32-1.7.5-beta2-VC9\\xampp\\htdocs\\static\\init_var.json","w");
 			fprintf(fp,"{");
 			fclose(fp);
-		}	
+		}*/	
 		//printf("%d %d\n", graph_node->line,prev_line);
 		fp = fopen("c:\\pcs\\rohan\\back up\\return to pendrive\\xampp-win32-1.7.5-beta2-VC9\\xampp\\htdocs\\static\\init_var.json","a");
 		if(graph_node->line==prev_line){
 				fprintf(fp,",\"%s\"",var_array[init_var_used]);
 			}
 		else{
-				if(first_print!=0)
+				
+				if(first_print!=0){
+					fprintf(fp,"]");
 					fprintf(fp,",");
-		fprintf(fp,"\"%d\":[\"%s\"]", graph_node->line,var_array[init_var_used]);
+				}
+		fprintf(fp,"\"%d\":[\"%s\"", graph_node->line,var_array[init_var_used]);
 		}
 		//printf("\t fn%d %d", graph_node->line, final_line_count);
-		if(graph_node->line==final_line_count){
+/*		if(graph_node->line==final_line_count){
 			fprintf(fp,"]}");
-		}
+		}*/
 		prev_line = graph_node->line;
 		first_print++;
 		fclose(fp);
@@ -762,13 +742,18 @@ void print_mem_leaks(struct node* graph_node){
 				//}
 			}
 		}
+		int j;
+		for(j=0;j<var_array_count;j++){
+			if(strcmp(var_array[j],"malloc")==0)
+				break;
+		}
 		fp = fopen("c:\\pcs\\rohan\\back up\\return to pendrive\\xampp-win32-1.7.5-beta2-VC9\\xampp\\htdocs\\static\\mem_leaks.json","w");
 		fprintf(fp,"{");
 		fclose(fp);
 		for(i=0;i<allocation_count;i++){
 			fp = fopen("c:\\pcs\\rohan\\back up\\return to pendrive\\xampp-win32-1.7.5-beta2-VC9\\xampp\\htdocs\\static\\mem_leaks.json","a");
 			
-			if(allocation_node[i]->free==0){
+			if((allocation_node[i]->free==0)&&(allocation_node[i]->points[allocation_node[i]->count]!=j)){
 				printf("free=0%d\n",allocation_node[i]->points[0]);
 				if(i>0)
 					fprintf(fp,",");
