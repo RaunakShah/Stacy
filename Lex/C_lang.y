@@ -9,6 +9,7 @@ int selectionFlag=0;
 int flagCount=0;
 char *indexVar;
 int indexFlag=0;
+int andOp=0;
 %}
 
 %union{
@@ -33,7 +34,7 @@ int indexFlag=0;
 %token CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 
 %type<text> declarator direct_declarator argument_expression_list
-%type<text> declaration_specifiers declaration_list external_declaration if_statement statement expression expression_statement declaration init_declarator primary_expression postfix_expression unary_expression assignment_expression conditional_expression initializer struct_declaration struct_declarator_list struct_declarator	relational_expression shift_expression
+%type<text> declaration_specifiers declaration_list external_declaration if_statement statement expression expression_statement declaration init_declarator primary_expression postfix_expression unary_expression assignment_expression conditional_expression initializer struct_declaration struct_declarator_list struct_declarator	relational_expression shift_expression logical_and_expression inclusive_or_expression
 %type<integer> storage_class_specifier
 
 %nonassoc LOWER_THAN_ELSE
@@ -43,7 +44,7 @@ int indexFlag=0;
 
 %%
 
-primary_expression: IDENTIFIER  {/*printf("primat %s",$1);/*/ if(selectionFlag==1){ currentSelectionNode->symbol[currentSelectionNode->symbolCount++] = strdup($1);} }
+primary_expression: IDENTIFIER  {printf("primat %s",$1); if(andOp==1){ createNode($1,lhs); andOp=0;}if(selectionFlag==1){ currentSelectionNode->symbol[currentSelectionNode->symbolCount++] = strdup($1);} }
 	| CONSTANT { $$=NULL;}
 	| STRING_LITERAL { $$=NULL; }
 	| '(' expression ')'
@@ -70,13 +71,13 @@ unary_expression
 	: postfix_expression {  /*printf("unary1 %s",$1);/*/	/* $$=$1;*/ }
 	| INC_OP unary_expression {  	/*printf("unary2");/*/ }
 	| DEC_OP unary_expression {  	/*printf("unary3");/*/ }
-	| unary_operator cast_expression {  /*	printf("unary4");/*/}
+	| unary_operator cast_expression {  	printf("unary4");}
 	| SIZEOF unary_expression {  	/* printf("signment");/*/}
 	| SIZEOF '(' type_name ')'
 	 {  	 }
 	;
 unary_operator
-	: '&' {  	 }
+	: '&' {  andOp=1;	printf("and"); }
 	| '*' {  	 }
 	| '+' {  printf("D1");	 }
 	| '-' {  	 }
@@ -140,7 +141,7 @@ inclusive_or_expression
 logical_and_expression
 	: inclusive_or_expression {  	 }
 	| logical_and_expression AND_OP inclusive_or_expression
-	 {  	 }
+	 {  	printf("USED IN FOR %s %s\n", $1,$3); }
 	;
 logical_or_expression
 	: logical_and_expression {  	 }
@@ -153,7 +154,7 @@ conditional_expression
 	 {  	 }
 	;
 assignment_expression
-	: conditional_expression {  printf("assignment_exp1 %s ",$1);	 }
+	: conditional_expression {  printf("assignment_exp1 %s ",$1); if($1&&strcmp($1,"scanf")==0){ createNode("scanf",rhs);}	}
 	| unary_expression assignment_operator assignment_expression
 	 {   printf("2");printf("%s",$1);createNode($1,lhs); if((indexFlag==1)&&(indexVar!=NULL)){ printf("%s %d ",indexVar,currentNode->indexCount); currentNode->index[currentNode->indexCount]=indexVar; printf("indec%s\n",currentNode->index[currentNode->indexCount++]); indexFlag=0;} if($3!=NULL){createNode($3,rhs);}/*init_symtab($1); /*printf("assiexp2 %s",$3);	/*/ }
 	;
@@ -172,7 +173,7 @@ assignment_operator
 	 {  	 }
 	;
 expression
-	: assignment_expression {/*printf("assignment3 %s ",$1);/*/ }
+	: assignment_expression {/*printf("assignment3 %s ",$1);/*/ if(strcmp($1,"scanf")==0); /*scan=1;*/ }
 	| expression ',' assignment_expression
 	 { 	 }
 	;
@@ -409,8 +410,8 @@ declaration_list
 	;
 	
 statement_list
-	: statement { /* printf("state1");/*/	 }
-	| statement_list statement { /*printf("state2");/*/}
+	: statement { /*printf("state1");	*/ }
+	| statement_list statement { /*printf("state2");*/}
 		
 	;
 expression_statement
@@ -432,11 +433,15 @@ selection_statement
 switch_statement
 	: SWITCH {createNode("switch",switch_node);selectionFlag=1;currentSelectionNode = currentNode; currentSelectionNode->symbolCount=0;}  '(' expression ')' { selectionFlag=0;  push(currentNode);}
 	;
+
+for_identifier
+	: FOR '(' expression_statement { createNode("for",for_node);selectionFlag=1; currentSelectionNode = currentNode; currentSelectionNode->symbolCount=0;}
+	;
 for_statement
-	: FOR '(' expression_statement expression_statement ')' { }
+	: for_identifier expression_statement ')' { }
 	;
 for_statement_extended
-	: FOR '(' expression_statement expression_statement expression ')' { printf("\nFOR %s %s %s",$3,$4,$5);createNode($3,for_node); push(currentNode);}
+	: for_identifier expression_statement { selectionFlag=0;} expression ')' {  push(currentNode);}
 	;
 while_statement
 	: WHILE {createNode("while",while_node); selectionFlag=1;currentSelectionNode = currentNode; currentSelectionNode->symbolCount=0;}'(' expression ')' { selectionFlag=0; push(currentNode);}
@@ -446,7 +451,7 @@ iteration_statement
 	| DO statement WHILE '(' expression ')' ';' {  	 }
 	| for_statement statement { currentNode = pop(); }
 	| for_statement_extended statement
-		 { }
+		 { currentNode = pop(); }
 	;
 jump_statement
 	: GOTO IDENTIFIER ';'
@@ -461,16 +466,17 @@ translation_unit
 	| translation_unit external_declaration { }
 	;
 external_declaration
-	: function_definition {	/*printf("hello");/*/ FILE *fp; int a = traverse_graph_for_init_var(startNode);fp = fopen("c:\\pcs\\rohan\\back up\\return to pendrive\\xampp-win32-1.7.5-beta2-VC9\\xampp\\htdocs\\static\\init_var.json","a"); fprintf(fp,"}"); fclose(fp);
-		int b = traverse_graph_for_mem_leaks(startNode); int c = traverse_graph_for_buffer_overflow(startNode);}
+	: function_definition {	 FILE *fp; int a = traverse_graph_for_init_var(startNode); fp = fopen("c:\\pcs\\rohan\\back up\\return to pendrive\\xampp-win32-1.7.5-beta2-VC9\\xampp\\htdocs\\static\\init_var.json","a"); fprintf(fp,"}"); fclose(fp);
+		int b = traverse_graph_for_mem_leaks(startNode); print_mem_leaks(currentNode);
+		int c = traverse_graph_for_buffer_overflow(startNode);}
 	| declaration {  }
 
 	;
 function_definition
-	: declaration_specifiers declarator declaration_list {createGraph();/*printf("1.%s 2.%s 3.%s",$1,$2,$3);/*/} compound_statement {	}
-	| declaration_specifiers declarator {createGraph(); printf("here%s",$2);createNode($2,other);} compound_statement {	 }
-	| declarator declaration_list {createGraph();/*printf("@");/*/} compound_statement {		 }
-	| declarator{createGraph();} compound_statement {}
+	: declaration_specifiers declarator declaration_list {createGraph();/*printf("1.%s 2.%s 3.%s",$1,$2,$3);/*/} compound_statement {	printf("YES");}
+	| declaration_specifiers declarator {createGraph(); printf("hereyo%s",$2);createNode($2,other);} compound_statement {	printf("YES1"); }
+	| declarator declaration_list {createGraph();/*printf("@");/*/} compound_statement {	printf("YES2");	 }
+	| declarator{createGraph();} compound_statement {printf("YES3");}
 	;
 %%
 extern int column;

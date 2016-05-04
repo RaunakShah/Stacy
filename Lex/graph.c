@@ -34,15 +34,15 @@ void createGraph(){
 void createNode(char *symbols, int type_of){
     struct node *newNode,*switchNode;
 	int i=0;
-	printf("regular node %s\n",symbols);
+	printf("\nregular node %s\n",symbols);
 	//printf("type of %d\n", type_of);
-	printf("1\n");
+	//printf("1\n");
 	newNode = (struct node*) malloc (sizeof(struct node));	
-	printf("2\n");
+	//printf("2\n");
 	newNode->symbol = malloc(sizeof(char *)*10);
-	printf("3");
+	//printf("3");
 	newNode->symbolCount = 0;
-	printf(" %d ",newNode->symbolCount);
+	//printf(" %d ",newNode->symbolCount);
 	newNode->symbol[newNode->symbolCount++] = strdup(symbols);
 	newNode->type = type_of;
 	newNode->line = line_number;
@@ -96,8 +96,8 @@ void createNode(char *symbols, int type_of){
 				//printf("switchnode->next[%d]->symbol = %s",i,(switchNode->next[i])->symbol);
 		}
 	i=0;
-	printf("%d ihere ", i);
-	printf("%s",currentNode->symbol[0]);
+	//printf("%d ihere ", i);
+	//printf("%s",currentNode->symbol[0]);
 	while(currentNode->next[i]!=NULL)
 			i++;
 		printf("%d", i);
@@ -242,10 +242,10 @@ struct node* pop(){
 int traverse_graph_for_init_var(struct node *graph_node){
 	int i;
 	for(i=0;i<graph_node->symbolCount;i++){
-		printf("%s ",graph_node->symbol[i]);
+		//printf("%s ",graph_node->symbol[i]);
 	}
 	for(i=0;i<graph_node->indexCount;i++){
-			printf("index%s \n\n\n",graph_node->index[i]);
+			//printf("index%s \n\n\n",graph_node->index[i]);
 		}
 		
 	int type,next_count=0,interim_count=0,check_for_common=0,common_array[10],common_array_count=0;
@@ -288,19 +288,7 @@ int traverse_graph_for_init_var(struct node *graph_node){
 		//printf("cnt3: %d ",var_array_count);
 		var_array_add(graph_node);
 	}
-	/*if(graph_node->type==malloc_node){
-		int i;
-		allocation_node[allocation_count] = malloc(sizeof(struct malloc));
-		allocation_node[allocation_count]->index = malloc_array_count++;
-		allocation_node[allocation_count]->points = malloc(sizeof(int)*10);
-		allocation_node[allocation_count]->count = 0;
-		for(i=var_array_count-1;i>=0;i--){
-			if(strcmp(graph_node->symbol,var_array[i])==0)
-				break;
-		}
-		allocation_node[allocation_count]->points[allocation_node[allocation_count]->count++] = i;
-		allocation_count++;
-	}*/
+	
 	if(graph_node->type==rhs){
 		
 		int valid = check_rhs_validity(graph_node);
@@ -365,7 +353,7 @@ int traverse_graph_for_init_var(struct node *graph_node){
 		
 		//printf("\ninitarra %d",init_array_count);
 		/*push_var_array_stack(var_array_count);
-		push_init_array_stack(init_array_count);
+		push_init_array_stack(init_array_count);//
 		push_init_var_used_stack(init_var_used_count);
 		*/
 		traverse_graph_for_init_var(graph_node->next[next_count++]);
@@ -374,7 +362,7 @@ int traverse_graph_for_init_var(struct node *graph_node){
 		
 }
 
-int traverse_graph_for_mem_leaks(struct node *graph_node){
+int traverse_graph_for_mem_leaks(struct node *graph_node){ 
 	int i;
 	int type,next_count=0,interim_count=0,check_for_common=0,common_array[10],common_array_count=0;
 	type = graph_node->type;
@@ -396,6 +384,8 @@ int traverse_graph_for_mem_leaks(struct node *graph_node){
 	
 	if(graph_node->type==if_node){ //still need to work on this!!
 		//push_mem_path_array(
+		printf("pushing index %d\n",mem_freed_array_count);
+		push_mem_path_array(mem_freed_array_count);
 	}
 	
 	/*if(graph_node->type==rhs){
@@ -418,17 +408,18 @@ int traverse_graph_for_mem_leaks(struct node *graph_node){
 			for(j=0;j<allocation_node[i]->count;j++){
 				if(strcmp((graph_node->next[0])->symbol[0],var_array[allocation_node[i]->points[j]])==0){
 					flag=1;
+					printf("free %s\n",(graph_node->next[0])->symbol[0]);
 					break;
 				}
 			}
 			if(flag==1)
 				break;
 		}
+		printf("adding to mem freed array %d\n",allocation_node[i]->index);
 		add_mem_freed_array(allocation_node[i]->index);
 	}		
 	
 	if((graph_node->next[0]==NULL)){
-		print_mem_leaks(graph_node);
 		return 1;
 	}
 	
@@ -442,24 +433,31 @@ int traverse_graph_for_mem_leaks(struct node *graph_node){
 		//printf("next[%d] %s\n",next_count,graph_node->symbol);	
 		interim_count = mem_freed_array_count;
 		check_for_common = mem_path_array[mem_path_array_count-1];
-		//printf("%d %d", interim_count,check_for_common);
+		printf("interim count %d common count %d\n",interim_count, check_for_common);
+		printf("%d %d\n", interim_count,check_for_common);
 		traverse_graph_for_mem_leaks(graph_node->next[next_count++]);
 	}
+	
 	if(graph_node->next[next_count]!=NULL){
+		printf("last\n");
 		//printf("next[%d] %s\n",next_count,graph_node->symbol);	
 		int i,j;
+		
 		for(i=check_for_common;i<interim_count;i++){
-			//printf("i %d %d %d",i,interim_count,init_array_count);
+			
+			printf("i %d %d %d",i,interim_count,mem_freed_array_count);
 			for(j=interim_count;j<mem_freed_array_count;j++){
 				//printf("j %d",j);
 				if(mem_freed_array[i]==mem_freed_array[j]){
-					//printf("comm%d",init_array[i]);
+					printf("comm%d\n",mem_freed_array[i]);
 					common_array[common_array_count++] = mem_freed_array[i];
 				}
 			}
 		}
 		mem_freed_array_count = pop_mem_path_array();
+		printf("popped array count %d\n", mem_freed_array_count);
 		if(common_array_count>0){
+			printf("common array enter\n");
 			for(i=0;i<common_array_count;i++){
 				//printf("%d", i);
 				mem_freed_array[mem_freed_array_count++] = common_array[i];
@@ -488,7 +486,7 @@ int traverse_graph_for_buffer_overflow(struct node *graph_node){
 	int type,next_count=0,interim_count=0,check_for_common=0,common_array[10],common_array_count=0;
 	type = graph_node->type;
 	//printf("graph symb %s type %d var arr cnt%d\n",graph_node->symbol,graph_node->type,var_array_count);
-	if(graph_node->type==if_node||graph_node->type==ifelse_node||graph_node->type==while_node||graph_node->type==switch_node){
+	if(graph_node->type==if_node||graph_node->type==ifelse_node||graph_node->type==while_node||graph_node->type==switch_node||graph_node->type==for_node){
 		int i;
 		struct safeArray *newSafeArray;
 		struct unsafeArray *newUnsafeArray;
@@ -527,36 +525,14 @@ int traverse_graph_for_buffer_overflow(struct node *graph_node){
 	
 	}
 	printf("after");
-	/*if(graph_node->type==switch_node){
-		push_var_array_stack(var_array_count);
-		push_ix	x	nit_array_stack(init_array_count);
-		push_init_var_used_stack(init_var_used_count);
-
-	}
-	if(graph_node->type==for_node){
-		push_var_array_stack(var_array_count);
-		push_init_array_stack(init_array_count);
-		push_init_var_used_stack(init_var_used_count);
-	}
-	if(graph_node->type==while_node){
-		push_var_array_stack(var_array_count);
-		push_init_array_stack(init_array_count);
-		push_init_var_used_stack(init_var_used_count);
-	}
-	if(graph_node->type==function_parameter){
-		var_array_add(graph_node);
-		init_array[init_array_count] = var_array_count-1;
-		init_array_count++;
-						
-	}
-	*/
+	
 	printf("before dec");
 	if(graph_node->type==declaration){
 		printf("in dec %s",graph_node->symbol[0]);
 		if(currentUnsafeArray==NULL){
 			struct unsafeArray *newUnsafeArray;
 			printf("here");
-			newUnsafeArray = (struct unsafeArray*) malloc (sizeof(struct unsafeArray*));
+			newUnsafeArray = (struct unsafeArray*) malloc (sizeof(struct unsafeArray));
 			printf("here1");
 			newUnsafeArray->nextScope = NULL;
 			printf("here2");
@@ -604,6 +580,7 @@ int traverse_graph_for_buffer_overflow(struct node *graph_node){
 		int i,j,flag=0;
 		printf(" in index count %d",graph_node->indexCount);
 		for(i=0;i<graph_node->indexCount;i++){
+			printf("flag%d", flag);
 			flag=0;
 			if(currentSafeArray){
 			for(j=0;j<currentSafeArray->count;j++){
@@ -613,22 +590,15 @@ int traverse_graph_for_buffer_overflow(struct node *graph_node){
 					break;
 				}			
 			}
+			printf("%d\n", flag);
+			}
 			if(flag==0){
 				printf("potential buffer overflow line: %d\n",graph_node->line);
 				break;
 				}
-			}
+			
 		}
 	}
-	/*if(graph_node->type==rhs){
-		
-		int valid = check_rhs_validity(graph_node);
-	}			
-		//	init_symtab(graph_node->symbol);
-	*/
-	/*if(strcmp(graph_node->symbol,"free")==0){
-		remove_malloc_array(graph_node->next[0]);
-	}*/
 	printf("herewhar");
 	if((graph_node->next[0]==NULL)){
 		
@@ -776,16 +746,16 @@ void print_mem_leaks(struct node* graph_node){
 				//printf("%d\n", allocation_count);
 			
 		}
-		//printf("freed\n");
+		printf("freed array count %d\n",mem_freed_array_count);
 		for(i=0;i<mem_freed_array_count;i++){
 			int j;
-			//printf("%d hello ",mem_freed_array[i]);
+			printf("%d hello ",mem_freed_array[i]);
 			for(j=0;j<allocation_count;j++){
 				int k;
 				//for(k=0;k<allocation_node[j]->count;k++){
 					//if(strcmp(var_array[mem_freed_array[i]],var_array[allocation_node[j]->points[k]])==0){ //figure all_node->points mapping to var array
 						if(mem_freed_array[i]==allocation_node[j]->index){
-						//printf("freeing %s",var_array[allocation_node[j]->points[0]]);
+						printf("freeing %s",var_array[allocation_node[j]->points[0]]);
 						allocation_node[j]->free = 1;
 						break;
 					}
@@ -799,9 +769,10 @@ void print_mem_leaks(struct node* graph_node){
 			fp = fopen("c:\\pcs\\rohan\\back up\\return to pendrive\\xampp-win32-1.7.5-beta2-VC9\\xampp\\htdocs\\static\\mem_leaks.json","a");
 			
 			if(allocation_node[i]->free==0){
+				printf("free=0%d\n",allocation_node[i]->points[0]);
 				if(i>0)
 					fprintf(fp,",");
-				fprintf(fp,"\"%d\":[\"%s\"]", allocation_node[i]->line, var_array[allocation_node[i]->points[i]]);
+				fprintf(fp,"\"%d\":[\"%s\"]", allocation_node[i]->line, var_array[allocation_node[i]->points[0]]);
 			}
 			fclose(fp);
 		}
@@ -966,7 +937,7 @@ void check_lhs_for_init_var(struct node * graph_node){
 
 int check_rhs_validity(struct node* graph_node){
 	//printf("%s",graph_node->symbol);
-	if(strcmp(graph_node->symbol[0],"malloc")!=0){
+	if((strcmp(graph_node->symbol[0],"malloc")!=0)&&(strcmp(graph_node->symbol[0],"scanf")!=0)){
 					
 				int i,index=101,flag=0;
 				//printf("rhs \n");
@@ -1107,7 +1078,9 @@ void check_lhs_for_mem_leaks(struct node * graph_node){
 void add_mem_freed_array(int index){
 	mem_freed_array[mem_freed_array_count++] = index;
 }
-
+void push_mem_path_array(int index){
+	mem_path_array[mem_path_array_count++] = index;
+}
 int pop_mem_path_array(){
 	return mem_path_array[--mem_path_array_count];
 }
@@ -1126,5 +1099,7 @@ error! - done*/
 
 // scanf should be taken as initialized
 // b=a c=b no error
-//work on if related to mem leaks 
+//work on if related to mem leaks - not done important 
 //work on diff selection statements for all error cases - work on for and switch
+//diff selection statements for mem leaks
+//handle pointer assignment. if one pointer is assigned to another, getting error in init. it should work only with *p for a pointer variable p;

@@ -1,10 +1,24 @@
-enum type_of_statement { declaration = 1, lhs = 2, rhs = 3, if_node = 4, for_node = 5, while_node = 6, switch_node = 7, function_parameter = 8, malloc_node = 9, other = 0};
+enum type_of_statement { declaration = 1, lhs = 2, rhs = 3, if_node = 4, for_node = 5, while_node = 6, switch_node = 7, function_parameter = 8, malloc_node = 9, ifelse_node=10, other = 0};
 struct node {
 	struct node *next[10];
 	char **symbol;
 	int type;
 	int line;
 	int symbolCount;
+	char **index;
+	int indexCount;
+};
+struct safeArray{
+	char *safe[10];
+	struct safeArray* nextScope;
+	struct safeArray* prevScope;
+	int count;
+};
+struct unsafeArray{
+	char *unsafe[10];
+	int count;
+	struct unsafeArray* nextScope;
+	struct unsafeArray* prevScope;
 };
 
 struct malloc {
@@ -49,10 +63,14 @@ int pop_init_var_used_stack();
 void push_init_var_used_stack(int var_array_count);
 void add_mem_alloc_path_array(struct node* graph_node);
 void add_mem_freed_array(int index);
+void push_mem_path_array(int index);
+int pop_mem_path_array();
 
 struct malloc* allocation_node[10];	
 struct node *currentNode;
-struct node *currentIfNode;
+struct safeArray *currentSafeArray;
+struct unsafeArray *currentUnsafeArray;
+struct node *currentSelectionNode;
 extern int ifFlag;
 struct symtab **s;
 struct node *startNode;
