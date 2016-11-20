@@ -1,3 +1,4 @@
+/* Input Test code */
 int main()
 {
   float a, b, c, determinant, r1,r2, real, imag;
