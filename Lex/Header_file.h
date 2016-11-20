@@ -1,5 +1,5 @@
-enum type_of_statement { declaration = 1, lhs = 2, rhs = 3, if_node = 4, for_node = 5, while_node = 6, switch_node = 7, function_parameter = 8, malloc_node = 9, ifelse_node=10, other = 0};
-struct node {
+enum type_of_statement { declaration = 1, lhs = 2, rhs = 3, if_node = 4, for_node = 5, while_node = 6, switch_node = 7, function_parameter = 8, malloc_node = 9, ifelse_node=10, other = 0};		//Identify different statement types
+struct node {		//Node structure
 	struct node *next[10];
 	char **symbol;
 	int type;
@@ -65,6 +65,10 @@ void add_mem_alloc_path_array(struct node* graph_node);
 void add_mem_freed_array(int index);
 void push_mem_path_array(int index);
 int pop_mem_path_array();
+void prepare_buffer_overflow();
+void clean_buffer_overflow();
+void init_buffer_overflow();
+
 
 struct malloc* allocation_node[10];	
 struct node *currentNode;
