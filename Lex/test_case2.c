@@ -1,3 +1,4 @@
+/* Basic test case */
 int main() {
 	int a	;
 	int b=1;
