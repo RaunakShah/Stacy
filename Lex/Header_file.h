@@ -1,3 +1,4 @@
+/* Header file */
 enum type_of_statement { declaration = 1, lhs = 2, rhs = 3, if_node = 4, for_node = 5, while_node = 6, switch_node = 7, function_parameter = 8, malloc_node = 9, ifelse_node=10, other = 0};		//Identify different statement types
 struct node {		//Node structure
 	struct node *next[10];
