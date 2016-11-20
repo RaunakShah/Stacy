@@ -1,3 +1,4 @@
+/* YACC File */
 %{
 #include<stdio.h>
 #include<string.h>
