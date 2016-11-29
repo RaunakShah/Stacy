@@ -15,3 +15,4 @@ This project utilizes the following files:
 
 4. Header_file.h - Header file used by the above files. 
 
+Two samples files that are used to test the basic functions of Stacy are also included in this repository
