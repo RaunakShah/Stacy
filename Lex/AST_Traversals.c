@@ -1,15 +1,25 @@
-/* Graph traversal for Stacy */
+/* 
+
+Stacy - A Static Code Analyzer
+This file performs the core functionality of our tool.
+Input source code to be analyzed is entered into the plug-in. 
+The output of the parser is used to form an Abstract Syntax Tree (AST) representation of code.
+Core functions are carried out during a depth-first traversal of the AST.
+
+*/
+
+
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
 #include "graph.h"
 #include "y.tab.h"
+
 int stacktop=0;
 int num_of_nodes=0;
-int cnt=0;
 int var_array_count = 0;
 int init_array_count=0;
-int scope_count=0;
 int var_array_stack_count=0;
 int init_array_stack_count=0;
 int init_var_used_stack_count=0;
@@ -25,9 +35,11 @@ int mem_freed_array_count=0;
 int first_buff_print=0;
 int first_mem_print=0;
 
+
+//Create new node of the AST
 void createNode(char *symbols, int type_of){
     struct node *newNode,*switchNode;
-	int i=0;
+	int loopCounter=0;
 	newNode = (struct node*) malloc (sizeof(struct node));	
 	/*Initialize new node*/
 	newNode->symbol = malloc(sizeof(char *)*10);
@@ -38,163 +50,204 @@ void createNode(char *symbols, int type_of){
 	newNode->index = malloc(sizeof(char)*10);
 	newNode->indexCount = 0;
 	final_line_count = line_number;
-	
-	for(i=0;i<10;i++){
-		newNode->next[i] = NULL;
+	//Outward pointers of node
+	for(loopCounter=0;loopCounter<10;loopCounter++){
+		newNode->next[loopCounter] = NULL;
 	}
-	i=0;
-	if(startNode == NULL){ /*New node is the start node*/
+	loopCounter=0;
+	
+	//New node is the start node
+	if(startNode == NULL){ 
 		startNode = newNode; 
 	}
 	else
-	if((strcmp(newNode->symbol[0],"break")==0)){ /*Encountered break in source code*/
+	//Encountered break in source code
+	if((strcmp(newNode->symbol[0],"break")==0)){
 		currentNode->next[0] = NULL; 
 	}
 	else{	
 		if((strcmp(newNode->symbol[0],"malloc")==0)){
 			currentNode->type = 9;
 		}
-		if(((strcmp(newNode->symbol[0],"case")==0)||(strcmp(newNode->symbol[0],"default")==0))&&(currentNode->type!=switch_node)){ /*switch case*/
+		//Switch case
+		if(((strcmp(newNode->symbol[0],"case")==0)||(strcmp(newNode->symbol[0],"default")==0))&&(currentNode->type!=switch_node)){
 			if((strcmp(currentNode->symbol[0],"break")!=0)){
-				i=0;
+				loopCounter=0;
 			}
 				switchNode = (struct node*) malloc (sizeof(struct node));
 				switchNode = stack[stacktop-1];
-				i=0;
-				while(switchNode->next[i]!=NULL){
-					i++;
+				loopCounter=0;
+				while(switchNode->next[loopCounter]!=NULL){
+					loopCounter++;
 				}	
-				switchNode->next[i] = newNode;
+				switchNode->next[loopCounter] = newNode;
 		}
-		i=0;
-		while(currentNode->next[i]!=NULL)
-			i++;
-		currentNode->next[i] = malloc(sizeof(struct node*));
-		currentNode->next[i] = newNode;
+		loopCounter=0;
+		while(currentNode->next[loopCounter]!=NULL)
+			loopCounter++;
+		currentNode->next[loopCounter] = malloc(sizeof(struct node*));
+		currentNode->next[loopCounter] = newNode;
 	}	
 	num_of_nodes++;
-	currentNode = newNode; /* Initialization complete*/
+	currentNode = newNode;
+	//Initialization complete
 	
 }
 		
-void push(struct node *item){ /* Push onto stack */
+//Push onto stack		
+void push(struct node *item){ 
 	stack[stacktop++] = item;
 }
 
-struct node* pop(){ /* Pop from stack */
+//Pop from stack 
+struct node* pop(){ 
 	return stack[--stacktop];
 }
 
+/*	
+Depth-first traversal of AST for detecting usage of uninitialized variables 
+Input argument: Each node of the AST	
+*/
+
 int traverse_graph_for_init_var(struct node *graph_node){
-	int i;
+	int loopCounter;
 	int type,next_count=0,interim_count=0,check_for_common=0,common_array[10],common_array_count=0;
 	type = graph_node->type;
 	
-	if(graph_node->type==switch_node){ /* If switch case is encountered */
+	/*Identify type of input node*/ 
+	
+	//If switch case is encountered
+	if(graph_node->type==switch_node){ 
 		push_var_array_stack(var_array_count);
 		push_init_array_stack(init_array_count);
 		push_init_var_used_stack(init_var_used_count);
-
 	}
+	//If node is encountered
 	if(graph_node->type==if_node){
 		push_var_array_stack(var_array_count);
 		push_init_array_stack(init_array_count);
 		push_init_var_used_stack(init_var_used_count);
 	}
+	//For loop is encountered
 	if(graph_node->type==for_node){
 		push_var_array_stack(var_array_count);
 		push_init_array_stack(init_array_count);
 		push_init_var_used_stack(init_var_used_count);
 	}
+	//While node is encountered
 	if(graph_node->type==while_node){
 		push_var_array_stack(var_array_count);
 		push_init_array_stack(init_array_count);
 		push_init_var_used_stack(init_var_used_count);
 	}
+	//Function parameter node
 	if(graph_node->type==function_parameter){
 		var_array_add(graph_node);
 		init_array[init_array_count] = var_array_count-1;
 		init_array_count++;
-						
 	}
+	//Declaration node
 	if(graph_node->type==declaration){
 		var_array_add(graph_node);
 	}
 	
+	
+	//Node is the Right Hand Side (RHS) of an expression
 	if(graph_node->type==rhs){	
 		int valid = check_rhs_validity(graph_node);
 	}			
+	//Node is the Left Hand Side (LHS) of an expression
 	if(graph_node->type==lhs){ 
 				check_lhs_for_init_var(graph_node);				
 	}
 	
-	if((graph_node->next[0]==NULL)){ /*End of scope */
+	//End of scope
+	if((graph_node->next[0]==NULL)){ 
 		return 1;
 	}
-
-	traverse_graph_for_init_var(graph_node->next[next_count++]); /* Recursive call */
-
+	
+	//Recursive call 
+	traverse_graph_for_init_var(graph_node->next[next_count++]);
+	
+	//In case of branch at current node 
 	while(graph_node->next[next_count+1]!=NULL){
-		int i;
 		interim_count = init_array_count;
 		check_for_common = init_array_stack[init_array_stack_count-1]; 
 		traverse_graph_for_init_var(graph_node->next[next_count++]);
 	}
+	
+	//At final path of current node
 	if(graph_node->next[next_count]!=NULL){
-		int i,j;
-		for(i=check_for_common;i<interim_count;i++){
-			for(j=interim_count;j<init_array_count;j++){
-				if(init_array[i]==init_array[j]){
-					common_array[common_array_count++] = init_array[i];
+		int loopCounter,innerLoopCounter;
+		//Check for variables that have been initialized in all possible paths
+		for(loopCounter=check_for_common;loopCounter<interim_count;loopCounter++){
+			for(innerLoopCounter=interim_count;innerLoopCounter<init_array_count;innerLoopCounter++){
+				if(init_array[loopCounter]==init_array[innerLoopCounter]){
+					common_array[common_array_count++] = init_array[loopCounter];
 				}
 			}
 		}
+		
+		//Return to previous state
 		var_array_count = pop_var_array_stack();
 		init_array_count = pop_init_array_stack();
 		init_var_used_count = pop_init_var_used_stack();
+		//If variables initialized in all possible paths
 		if(common_array_count>0){
-			for(i=0;i<common_array_count;i++){
-				init_array[init_array_count++] = common_array[i];
+			for(loopCounter=0;loopCounter<common_array_count;loopCounter++){
+				init_array[init_array_count++] = common_array[loopCounter];
 			}
 		}
 		
 		traverse_graph_for_init_var(graph_node->next[next_count++]);
-	}
-	
-		
+	}	
 }
 
+/*	
+Depth-first traversal of AST for detecting presence of potential memory leaks 
+Input argument: Each node of the AST	
+*/
+
 int traverse_graph_for_mem_leaks(struct node *graph_node){ 
-	int i;
+	int loopCounter;
 	int type,next_count=0,interim_count=0,check_for_common=0,common_array[10],common_array_count=0;
 	type = graph_node->type;
+	
+	//Input node allocates memory dynamically
 	if(graph_node->type==malloc_node){
-		int i;
+		int loopCounter;
+		
+		//Update the array that tracks memory allocations
 		allocation_node[allocation_count] = malloc(sizeof(struct malloc));
 		allocation_node[allocation_count]->index = malloc_array_count++;
 		allocation_node[allocation_count]->points = malloc(sizeof(int)*10);
 		allocation_node[allocation_count]->count = 0;
 		allocation_node[allocation_count]->line = graph_node->line;
 		allocation_node[allocation_count]->free = 0;
-		for(i=var_array_count-1;i>=0;i--){
-			if(strcmp(graph_node->symbol[0],var_array[i])==0)
+		for(loopCounter=var_array_count-1;loopCounter>=0;loopCounter--){
+			if(strcmp(graph_node->symbol[0],var_array[loopCounter])==0)
 				break;
 		}
-		allocation_node[allocation_count]->points[allocation_node[allocation_count]->count++] = i;
+		allocation_node[allocation_count]->points[allocation_node[allocation_count]->count++] = loopCounter;
 		allocation_count++;
 	}
 	
+	//Branch in AST
 	if(graph_node->type==if_node||graph_node->type==switch_node){ 
 		push_mem_path_array(mem_freed_array_count);
 	}
+	//Node is on LHS of an expression
 	if(graph_node->type==lhs){  
 		check_lhs_for_mem_leaks(graph_node);				
 	}
+	
+	//Dynamically allocated memory is freed by the current node
 	if(strcmp(graph_node->symbol[0],"free")==0){
-		int index,i,j,flag=0;
-		for(i=0;i<allocation_count;i++){
-			for(j=0;j<allocation_node[i]->count;j++){
-				if(strcmp((graph_node->next[0])->symbol[0],var_array[allocation_node[i]->points[j]])==0){
+		int index,loopCounter,innerLoopCounter,flag=0;
+		//To determine which variable is freed
+		for(loopCounter=0;loopCounter<allocation_count;loopCounter++){
+			for(innerLoopCounter=0;innerLoopCounter<allocation_node[loopCounter]->count;innerLoopCounter++){
+				if(strcmp((graph_node->next[0])->symbol[0],var_array[allocation_node[loopCounter]->points[innerLoopCounter]])==0){
 					flag=1;
 					break;
 				}
@@ -202,35 +255,41 @@ int traverse_graph_for_mem_leaks(struct node *graph_node){
 			if(flag==1)
 				break;
 		}
-		add_mem_freed_array(allocation_node[i]->index);
+		add_mem_freed_array(allocation_node[loopCounter]->index);
 	}		
 	
 	if((graph_node->next[0]==NULL)){
 		return 1;
 	}
 	
+	//Recursive call
 	traverse_graph_for_mem_leaks(graph_node->next[next_count++]);
 	
+	//In case of branch at current node
 	while(graph_node->next[next_count+1]!=NULL){
-		int i;
+		int loopCounter;
 		interim_count = mem_freed_array_count;
 		check_for_common = mem_path_array[mem_path_array_count-1];
 		traverse_graph_for_mem_leaks(graph_node->next[next_count++]);
 	}
 	
+	//At final path of current node
 	if(graph_node->next[next_count]!=NULL){
-		int i,j;
-		for(i=check_for_common;i<interim_count;i++){
-			for(j=interim_count;j<mem_freed_array_count;j++){
-				if(mem_freed_array[i]==mem_freed_array[j]){
-				common_array[common_array_count++] = mem_freed_array[i];
+		int loopCounter,innerLoopCounter;
+		
+		//Check for dynamically allocated variables that have been freed at all possible paths
+		for(loopCounter=check_for_common;loopCounter<interim_count;loopCounter++){
+			for(innerLoopCounter=interim_count;innerLoopCounter<mem_freed_array_count;innerLoopCounter++){
+				if(mem_freed_array[loopCounter]==mem_freed_array[innerLoopCounter]){
+				common_array[common_array_count++] = mem_freed_array[loopCounter];
 				}
 			}
 		}
+		//Return to previous state
 		mem_freed_array_count = pop_mem_path_array();
 		if(common_array_count>0){
-			for(i=0;i<common_array_count;i++){
-				mem_freed_array[mem_freed_array_count++] = common_array[i];
+			for(loopCounter=0;loopCounter<common_array_count;loopCounter++){
+				mem_freed_array[mem_freed_array_count++] = common_array[loopCounter];
 			}
 		}
 		
@@ -239,37 +298,27 @@ int traverse_graph_for_mem_leaks(struct node *graph_node){
 			
 }
 
-char *buff_overflow_json = "c:\\pcs\\rohan\\back up\\return to pendrive\\xampp-win32-1.7.5-beta2-VC9\\xampp\\htdocs\\static\\buff.json";
-void init_buffer_overflow(){
-	unlink(buff_overflow_json);
-}
-void prepare_buffer_overflow()
-{
-	FILE *fp = fopen(buff_overflow_json,"w"); fprintf(fp,"{"); fclose(fp);
-	currentSafeArray = NULL;
-	currentUnsafeArray = NULL;
- 
-}
 
-void clean_buffer_overflow()
-{
-	FILE *fp = fopen(buff_overflow_json,"a"); 
-	fprintf(fp,"}"); 
-	fclose(fp);
-}
+/*	
+Depth-first traversal of AST for detecting presence of potential buffer overflows
+Input argument: Each node of the AST	
+*/
+
 int traverse_graph_for_buffer_overflow(struct node *graph_node){
-	int i;
+	int loopCounter;
 	int type,next_count=0,interim_count=0,check_for_common=0,common_array[10],common_array_count=0;
 	type = graph_node->type;
+	//Determine type of input node
 	if(graph_node->type==if_node||graph_node->type==ifelse_node||graph_node->type==while_node||graph_node->type==switch_node||graph_node->type==for_node){
-		int i;
-		struct safeArray *newSafeArray;
-		struct unsafeArray *newUnsafeArray;
+		int loopCounter;
+		struct safeArray *newSafeArray;		//Array of "safe" variables
+		struct unsafeArray *newUnsafeArray;	//Array of "unsafe" variables
 		
+		//Initialize safe array
 		newSafeArray = (struct safeArray*) malloc (sizeof(struct safeArray));
 		newSafeArray->count = 0;
-		for(i=0;i<graph_node->symbolCount;i++){
-			newSafeArray->safe[newSafeArray->count++] = strdup(graph_node->symbol[i]);
+		for(loopCounter=0;loopCounter<graph_node->symbolCount;loopCounter++){
+			newSafeArray->safe[newSafeArray->count++] = strdup(graph_node->symbol[loopCounter]);
 		}
 		newSafeArray->nextScope = NULL;
 		if(currentSafeArray==NULL){
@@ -279,6 +328,8 @@ int traverse_graph_for_buffer_overflow(struct node *graph_node){
 			newSafeArray->prevScope = currentSafeArray;
 		}
 		currentSafeArray = newSafeArray;
+		
+		//Initialize unsafe array
 		newUnsafeArray = (struct unsafeArray*) malloc (sizeof(struct unsafeArray));
 		newUnsafeArray->nextScope = NULL;
 		newUnsafeArray->count = 0;
@@ -290,6 +341,7 @@ int traverse_graph_for_buffer_overflow(struct node *graph_node){
 		}
 		currentUnsafeArray = newUnsafeArray;
 	}
+	//Declared but uninitialized variables are added to unsafe array
 	if(graph_node->type==declaration){
 		if(currentUnsafeArray==NULL){
 			struct unsafeArray *newUnsafeArray;
@@ -302,67 +354,64 @@ int traverse_graph_for_buffer_overflow(struct node *graph_node){
 		currentUnsafeArray->unsafe[currentUnsafeArray->count++] = strdup(graph_node->symbol[0]);
 	}
 	
+	//Variables initialized and unchecked are added to the unsafe array
 	if(graph_node->type==lhs){  
-			int i,flag=0;
+			int loopCounter,flag=0;
 			if(currentSafeArray){
-			for(i=0;i<currentSafeArray->count;i++){
-				if(strcmp(currentSafeArray->safe[i],graph_node->symbol[0])==0){
+			for(loopCounter=0;loopCounter<currentSafeArray->count;loopCounter++){
+				if(strcmp(currentSafeArray->safe[loopCounter],graph_node->symbol[0])==0){
 					currentUnsafeArray->unsafe[currentUnsafeArray->count] = malloc(sizeof(char));
-					strcpy(currentUnsafeArray->unsafe[currentUnsafeArray->count++],currentSafeArray->safe[i]);
+					strcpy(currentUnsafeArray->unsafe[currentUnsafeArray->count++],currentSafeArray->safe[loopCounter]);
 					flag=1;
 					break;
 				}
 			}
 			if(flag==1){
-				int j;
-				for(j=i;j<currentSafeArray->count-1;j++){
-					currentSafeArray->safe[j] = currentSafeArray->safe[j+1]; 
+				int innerLoopCounter;
+				for(innerLoopCounter=loopCounter;innerLoopCounter<currentSafeArray->count-1;innerLoopCounter++){
+					currentSafeArray->safe[innerLoopCounter] = currentSafeArray->safe[innerLoopCounter+1]; 
 				}
 				currentSafeArray->count--;
 			}
 			}
 				
 	}
+	//Check for potential buffer overflows
 	if(graph_node->indexCount>0){
-		int i,j,flag=0;
-		for(i=0;i<graph_node->indexCount;i++){
+		int loopCounter,innerLoopCounter,flag=0;
+		for(loopCounter=0;loopCounter<graph_node->indexCount;loopCounter++){
 			flag=0;
 			if(currentSafeArray){
-			for(j=0;j<currentSafeArray->count;j++){
-				if(strcmp(graph_node->index[i],currentSafeArray->safe[j])==0){
-					flag=1;
-					break;
-				}			
+				for(innerLoopCounter=0;innerLoopCounter<currentSafeArray->count;innerLoopCounter++){
+					if(strcmp(graph_node->index[loopCounter],currentSafeArray->safe[innerLoopCounter])==0){
+						flag=1;
+						break;
+					}			
+				}
 			}
-			}
-			if(flag==0){  /* Potential buffer overflow */
-				FILE *fp;
-				fp = fopen("c:\\pcs\\rohan\\back up\\return to pendrive\\xampp-win32-1.7.5-beta2-VC9\\xampp\\htdocs\\static\\buff.json","a");
-				if(first_buff_print!=0)
-					fprintf(fp,",");
-				fprintf(fp,"\"%d\":[\"%s\"]", graph_node->line,graph_node->index[i]);
-				fclose(fp);
-				first_buff_print++;
+			// Potential buffer overflow 
+			if(flag==0){  
 				printf("potential buffer overflow line: %d\n",graph_node->line);
 				break;
-				}
-			
+			}
 		}
 	}
 	if((graph_node->next[0]==NULL)){
 		return 1;
 	}
 	
+	//Recursive call
 	traverse_graph_for_buffer_overflow(graph_node->next[next_count++]);
-
+	
 	while(graph_node->next[next_count+1]!=NULL){
 		traverse_graph_for_buffer_overflow(graph_node->next[next_count++]);
 	}
+	
+	//Return to previous state
 	if(graph_node->next[next_count]!=NULL){
 		currentSafeArray = currentSafeArray->prevScope;
 		currentUnsafeArray = currentUnsafeArray->prevScope;
 		traverse_graph_for_buffer_overflow(graph_node->next[next_count++]);
-
 	}
 	
 		
@@ -400,7 +449,7 @@ int pop_init_var_used_stack(){
 }
 
 void print_init_array(struct node* graph_node){
-		int i;
+		int loopCounter;
 		FILE *fp;
 		if(first_print!=0){
 			fp = fopen("c:\\pcs\\rohan\\back up\\return to pendrive\\xampp-win32-1.7.5-beta2-VC9\\xampp\\htdocs\\static\\init_var.json","a");
@@ -416,40 +465,40 @@ void print_init_array(struct node* graph_node){
 }
 
 void print_mem_leaks(struct node* graph_node){
-		int i;
+		int loopCounter;
 		FILE *fp;
-		i=0;
-		for(i=0;i<allocation_count;i++){
-				int j;
-				for(j=0;j<allocation_node[i]->count;j++){
+		loopCounter=0;
+		for(loopCounter=0;loopCounter<allocation_count;loopCounter++){
+				int innerLoopCounter;
+				for(innerLoopCounter=0;innerLoopCounter<allocation_node[loopCounter]->count;innerLoopCounter++){
 				}
 			
 		}
-		for(i=0;i<mem_freed_array_count;i++){
-			int j;
-			for(j=0;j<allocation_count;j++){
-				if(mem_freed_array[i]==allocation_node[j]->index){ /* Map to variable array */
-						allocation_node[j]->free = 1;
+		for(loopCounter=0;loopCounter<mem_freed_array_count;loopCounter++){
+			int innerLoopCounter;
+			for(innerLoopCounter=0;innerLoopCounter<allocation_count;innerLoopCounter++){
+				if(mem_freed_array[loopCounter]==allocation_node[innerLoopCounter]->index){ /* Map to variable array */
+						allocation_node[innerLoopCounter]->free = 1;
 						break;
 					}
 			}
 		}
-		int j;
-		for(j=0;j<var_array_count;j++){
-			if(strcmp(var_array[j],"malloc")==0)
+		int innerLoopCounter;
+		for(innerLoopCounter=0;innerLoopCounter<var_array_count;innerLoopCounter++){
+			if(strcmp(var_array[innerLoopCounter],"malloc")==0)
 				break;
 		}
 		fp = fopen("c:\\pcs\\rohan\\back up\\return to pendrive\\xampp-win32-1.7.5-beta2-VC9\\xampp\\htdocs\\static\\mem_leaks.json","w");
 		fprintf(fp,"{");
 		fclose(fp);
-		for(i=0;i<allocation_count;i++){
+		for(loopCounter=0;loopCounter<allocation_count;loopCounter++){
 			fp = fopen("c:\\pcs\\rohan\\back up\\return to pendrive\\xampp-win32-1.7.5-beta2-VC9\\xampp\\htdocs\\static\\mem_leaks.json","a");
 			
-			if((allocation_node[i]->free==0)&&(allocation_node[i]->points[allocation_node[i]->count]!=j)){
+			if((allocation_node[loopCounter]->free==0)&&(allocation_node[loopCounter]->points[allocation_node[loopCounter]->count]!=innerLoopCounter)){
 				if(first_mem_print!=0)
 					fprintf(fp,",");
 				first_mem_print++;
-				fprintf(fp,"\"%d\":[\"%s\"]", allocation_node[i]->line, var_array[allocation_node[i]->points[0]]);
+				fprintf(fp,"\"%d\":[\"%s\"]", allocation_node[loopCounter]->line, var_array[allocation_node[loopCounter]->points[0]]);
 			}
 			fclose(fp);
 		}
@@ -463,14 +512,14 @@ void malloc_array_add(struct node* graph_node){
 }	
 
 void remove_malloc_array(char* symbol){
-	int i,j,k,index,flag=0;
-	for(i=var_array_count-1;i>=0;i--){
-		if(strcmp(var_array[i],symbol)==0)
+	int loopCounter,innerLoopCounter,k,index,flag=0;
+	for(loopCounter=var_array_count-1;loopCounter>=0;loopCounter--){
+		if(strcmp(var_array[loopCounter],symbol)==0)
 			break;
 	}
-	for(j=0;j<allocation_count;j++){
-		for(k=0;k<allocation_node[j]->count;k++){
-			if(allocation_node[j]->points[k]==i){
+	for(innerLoopCounter=0;innerLoopCounter<allocation_count;innerLoopCounter++){
+		for(k=0;k<allocation_node[innerLoopCounter]->count;k++){
+			if(allocation_node[innerLoopCounter]->points[k]==loopCounter){
 				flag = 1;
 				break;
 			}
@@ -478,26 +527,26 @@ void remove_malloc_array(char* symbol){
 		if(flag==1)
 			break;		
 	}
-	for(i=j;i<allocation_count-1;i++){
-		allocation_node[i] = allocation_node[i+1];
+	for(loopCounter=innerLoopCounter;loopCounter<allocation_count-1;loopCounter++){
+		allocation_node[loopCounter] = allocation_node[loopCounter+1];
 	}
-	free(allocation_node[i+1]);
+	free(allocation_node[loopCounter+1]);
 	allocation_count--;
 		
 }
 
 void check_lhs_for_init_var(struct node * graph_node){
-	int i,index,flag=0,j=0,repeat=0,valid;
+	int loopCounter,index,flag=0,innerLoopCounter=0,repeat=0,valid;
 	int isAllocationNode=0;
 	if(var_array_count==0){
 		var_array_add(graph_node);	
 		index = 0;
 	}
-	j = var_array_count-1;
-	for(i=j;i>=0;i--){
-		if(strcmp(var_array[i],graph_node->symbol[0])==0){
+	innerLoopCounter = var_array_count-1;
+	for(loopCounter=innerLoopCounter;loopCounter>=0;loopCounter--){
+		if(strcmp(var_array[loopCounter],graph_node->symbol[0])==0){
 			flag = 1;
-			index = i;
+			index = loopCounter;
 			break;
 		}
 	}
@@ -508,7 +557,7 @@ void check_lhs_for_init_var(struct node * graph_node){
 	if(graph_node->next[0]){
 		if((graph_node->next[0])->type==3){
 			struct node *temp;
-			int i,j,k,flag=0;
+			int loopCounter,innerLoopCounter,k,flag=0;
 			temp = graph_node->next[0];
 			for(k=var_array_count-1;k>=0;k--){
 				if(strcmp(var_array[k],temp->symbol[0])==0){
@@ -517,8 +566,8 @@ void check_lhs_for_init_var(struct node * graph_node){
 			}
 		}
 	}
-	for(i=0;i<init_array_count;i++){ 
-		if(init_array[i] == index){
+	for(loopCounter=0;loopCounter<init_array_count;loopCounter++){ 
+		if(init_array[loopCounter] == index){
 			break;
 		}
 	}
@@ -531,15 +580,15 @@ void check_lhs_for_init_var(struct node * graph_node){
 
 int check_rhs_validity(struct node* graph_node){
 	if((strcmp(graph_node->symbol[0],"malloc")!=0)&&(strcmp(graph_node->symbol[0],"scanf")!=0)){			
-		int i,index=101,flag=0;
-		for(i=var_array_count-1;i>=0;i--){
-			if(strcmp(var_array[i],graph_node->symbol[0])==0){
-				index = i;
+		int loopCounter,index=101,flag=0;
+		for(loopCounter=var_array_count-1;loopCounter>=0;loopCounter--){
+			if(strcmp(var_array[loopCounter],graph_node->symbol[0])==0){
+				index = loopCounter;
 				break;
 			}
 		}
-		for(i=init_array_count-1;i>=0;i--){
-			if(init_array[i]==index){
+		for(loopCounter=init_array_count-1;loopCounter>=0;loopCounter--){
+			if(init_array[loopCounter]==index){
 				flag=1;
 				break;
 			}
@@ -555,17 +604,17 @@ int check_rhs_validity(struct node* graph_node){
 
 
 void check_lhs_for_mem_leaks(struct node * graph_node){
-	int i,index,flag=0,j=0,repeat=0,valid;
+	int loopCounter,index,flag=0,innerLoopCounter=0,repeat=0,valid;
 	int isAllocationNode=0;
 	if(var_array_count==0){
 		var_array_add(graph_node);	
 		index = 0;
 	}
-	j = var_array_count-1;
-	for(i=j;i>=0;i--){
-		if(strcmp(var_array[i],graph_node->symbol[0])==0){
+	innerLoopCounter = var_array_count-1;
+	for(loopCounter=innerLoopCounter;loopCounter>=0;loopCounter--){
+		if(strcmp(var_array[loopCounter],graph_node->symbol[0])==0){
 			flag = 1;
-			index = i;
+			index = loopCounter;
 			break;
 		}
 	}
@@ -576,18 +625,18 @@ void check_lhs_for_mem_leaks(struct node * graph_node){
 	if(graph_node->next[0]){
 		if((graph_node->next[0])->type==3){
 			struct node *temp;
-			int i,j,k,flag=0;
+			int loopCounter,innerLoopCounter,k,flag=0;
 			temp = graph_node->next[0];
 			for(k=var_array_count-1;k>=0;k--){
 				if(strcmp(var_array[k],temp->symbol[0])==0){
 					break;
 				}
 			}
-			for(i=0;i<allocation_count;i++){
-				for(j=0;j<allocation_node[i]->count;j++){
-					if(k == allocation_node[i]->points[j]){ //
-						allocation_node[i]->points[allocation_node[i]->count] = index;
-						allocation_node[i]->count++;
+			for(loopCounter=0;loopCounter<allocation_count;loopCounter++){
+				for(innerLoopCounter=0;innerLoopCounter<allocation_node[loopCounter]->count;innerLoopCounter++){
+					if(k == allocation_node[loopCounter]->points[innerLoopCounter]){ //
+						allocation_node[loopCounter]->points[allocation_node[loopCounter]->count] = index;
+						allocation_node[loopCounter]->count++;
 						flag = 1;
 						isAllocationNode=1;
 						break;
