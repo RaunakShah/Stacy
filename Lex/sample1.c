@@ -1,4 +1,10 @@
-/* Input Test code */
+/* 
+
+Sample source code that is used to test the correctness of Stacy  
+
+*/
+
+
 int main()
 {
   float a, b, c, determinant, r1,r2, real, imag;
