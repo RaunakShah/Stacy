@@ -1,6 +1,6 @@
-/* Header file */
 enum type_of_statement { declaration = 1, lhs = 2, rhs = 3, if_node = 4, for_node = 5, while_node = 6, switch_node = 7, function_parameter = 8, malloc_node = 9, ifelse_node=10, other = 0};		//Identify different statement types
-struct node {		//Node structure
+//Node structure
+struct node {		
 	struct node *next[10];
 	char **symbol;
 	int type;
@@ -9,12 +9,16 @@ struct node {		//Node structure
 	char **index;
 	int indexCount;
 };
+
+//Structure for "safe" array
 struct safeArray{
 	char *safe[10];
 	struct safeArray* nextScope;
 	struct safeArray* prevScope;
 	int count;
 };
+
+//Structure for "unsafe" array
 struct unsafeArray{
 	char *unsafe[10];
 	int count;
@@ -22,6 +26,7 @@ struct unsafeArray{
 	struct unsafeArray* prevScope;
 };
 
+//Structure for dynamically allocated variables
 struct malloc {
 	int index;
 	int *points;
@@ -30,16 +35,12 @@ struct malloc {
 	int free;
 };
 
-struct symtab{
-	char *symbol;
-	int init;
-};
-
 struct stack{
 	struct node *item;
 };
 int scope_stack[100];
 
+//Functions used by AST_Traversals.c
 void createGraph();
 void createIfNode();
 void createNode();
@@ -70,7 +71,7 @@ void prepare_buffer_overflow();
 void clean_buffer_overflow();
 void init_buffer_overflow();
 
-
+//Data structures used
 struct malloc* allocation_node[10];	
 struct node *currentNode;
 struct safeArray *currentSafeArray;
