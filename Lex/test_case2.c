@@ -1,4 +1,6 @@
-/* Basic test case */
+/* 
+Sample source code that can be used for testing  
+*/
 int main() {
 	int a	;
 	int b=1;
