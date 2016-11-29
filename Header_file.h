@@ -46,10 +46,6 @@ void createIfNode();
 void createNode();
 void push(struct node *item);
 struct node* pop();
-void add_to_symtab(char *symbol);
-void init_symtab(char *symbol);
-void add_scope();
-void pop_scope();
 void var_array_add(struct node* node);
 void push_var_array_stack(int count);
 void push_init_array_stack(int count);
@@ -67,9 +63,7 @@ void add_mem_alloc_path_array(struct node* graph_node);
 void add_mem_freed_array(int index);
 void push_mem_path_array(int index);
 int pop_mem_path_array();
-void prepare_buffer_overflow();
-void clean_buffer_overflow();
-void init_buffer_overflow();
+
 
 //Data structures used
 struct malloc* allocation_node[10];	
