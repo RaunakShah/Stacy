@@ -1,10 +1,6 @@
 /* 
-
-Sample source code that is used to test the correctness of Stacy  
-
+Sample source code that can be used for testing  
 */
-
-
 int main()
 {
   float a, b, c, determinant, r1,r2, real, imag;
