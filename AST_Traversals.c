@@ -452,11 +452,11 @@ void print_init_array(struct node* graph_node){
 		int loopCounter;
 		FILE *fp;
 		if(first_print!=0){
-			fp = fopen("c:\\pcs\\rohan\\back up\\return to pendrive\\xampp-win32-1.7.5-beta2-VC9\\xampp\\htdocs\\static\\init_var.json","a");
+			fp = fopen("c:\\raunak\\static\\init_var.json","a");
 			fprintf(fp,",");
 			fclose(fp);
 		}	
-		fp = fopen("c:\\pcs\\rohan\\back up\\return to pendrive\\xampp-win32-1.7.5-beta2-VC9\\xampp\\htdocs\\static\\init_var.json","a");
+		fp = fopen("c:\\raunak\\static\\init_var.json","a");
 		fprintf(fp,"\"%d\":[\"%s\"]", graph_node->line,var_array[init_var_used]);
 		prev_line = graph_node->line;
 		first_print++;
@@ -488,11 +488,11 @@ void print_mem_leaks(struct node* graph_node){
 			if(strcmp(var_array[innerLoopCounter],"malloc")==0)
 				break;
 		}
-		fp = fopen("c:\\pcs\\rohan\\back up\\return to pendrive\\xampp-win32-1.7.5-beta2-VC9\\xampp\\htdocs\\static\\mem_leaks.json","w");
+		fp = fopen("c:\\raunak\\static\\mem_leaks.json","w");
 		fprintf(fp,"{");
 		fclose(fp);
 		for(loopCounter=0;loopCounter<allocation_count;loopCounter++){
-			fp = fopen("c:\\pcs\\rohan\\back up\\return to pendrive\\xampp-win32-1.7.5-beta2-VC9\\xampp\\htdocs\\static\\mem_leaks.json","a");
+			fp = fopen("c:\\raunak\\static\\mem_leaks.json","a");
 			
 			if((allocation_node[loopCounter]->free==0)&&(allocation_node[loopCounter]->points[allocation_node[loopCounter]->count]!=innerLoopCounter)){
 				if(first_mem_print!=0)
@@ -502,7 +502,7 @@ void print_mem_leaks(struct node* graph_node){
 			}
 			fclose(fp);
 		}
-			fp = fopen("c:\\pcs\\rohan\\back up\\return to pendrive\\xampp-win32-1.7.5-beta2-VC9\\xampp\\htdocs\\static\\mem_leaks.json","a");
+			fp = fopen("c:\\raunak\\static\\mem_leaks.json","a");
 		fprintf(fp,"}");
 		fclose(fp);
 }
